@@ -3,6 +3,7 @@
 // Volumes indicatifs, non contractuels : à remplacer par un relevé validé.
 import * as THREE from 'three'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
+import { BUILDINGS, CENTER, COURTS, ENCLOSURE, INNER, MIRADORS, OUTER, PATH, ROUTE, type Kind, type Pt } from './layout'
 
 export interface PinData { ordre: number; titre: string; x: number; y: number; state: 'done' | 'current' | 'locked'; reachable: boolean }
 export type View =
@@ -12,24 +13,21 @@ export type View =
   | { kind: 'sky' }
 export interface SceneOptions { onSelect?: (ordre: number) => void; reducedMotion?: boolean }
 
-const S = 50 // 50 px de plan = 1 unité 3D
-const toV = (x: number, y: number, h = 0) => new THREE.Vector3((x - 500) / S, h, (y - 300) / S)
+const S = 40 // 40 px de plan = 1 unité 3D
+const toV = (x: number, y: number, h = 0) => new THREE.Vector3((x - CENTER[0]) / S, h, (y - CENTER[1]) / S)
 
-const OUTER = [[120, 500], [70, 300], [140, 90], [330, 40], [640, 50], [880, 120], [940, 330], [860, 520], [600, 560], [300, 560]]
-const INNER = [[150, 480], [108, 300], [168, 118], [340, 74], [628, 82], [850, 145], [902, 330], [830, 494], [592, 528], [310, 528]]
-const BUILDINGS = [[330, 200, 150, 70], [520, 200, 150, 70], [400, 330, 200, 60], [230, 310, 90, 120]]
 
 const C = {
   sky: '#2a1d36', horizon: '#c98a6b', ground: '#cdb994', moat: '#8d7b5b', wallSide: '#b39874', wallTop: '#7f8a5e',
   court: '#d8c7a2', building: '#e6d8bd', roof: '#6d4f5c', tree: '#4d5a3a', red: '#c8232c', plum: '#7a2860', locked: '#8a7a8d',
 }
 
-function shapeFrom(points: number[][], scale = 1) {
-  const cx = 500, cy = 300
+function shapeFrom(points: Pt[], scale = 1) {
+  const [cx, cy] = CENTER
   const s = new THREE.Shape()
   points.forEach(([x, y], i) => {
-    const px = (cx + (x - cx) * scale - 500) / S
-    const py = (cy + (y - cy) * scale - 300) / S
+    const px = ((x - cx) * scale) / S
+    const py = ((y - cy) * scale) / S
     i ? s.lineTo(px, py) : s.moveTo(px, py)
   })
   s.closePath()
@@ -164,34 +162,79 @@ export class FortScene {
     const court = new THREE.Mesh(new THREE.ShapeGeometry(courtShape), new THREE.MeshStandardMaterial({ color: C.court, roughness: 1, side: THREE.DoubleSide }))
     court.rotation.x = Math.PI / 2; court.position.y = 0.02; court.receiveShadow = true; this.scene.add(court)
 
-    // Porte d'entrée (côté sud)
-    const gate = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.85, 0.5), new THREE.MeshStandardMaterial({ color: '#2b1b30' }))
-    gate.position.copy(toV(450, 556, 0.42)); this.scene.add(gate)
+    // Porte d'entrée : au milieu de la courtine entre les bastions sud et ouest
+    const [g1, g2] = [OUTER[14], OUTER[15]]
+    const gate = new THREE.Mesh(new THREE.BoxGeometry(1, 0.9, 0.6), new THREE.MeshStandardMaterial({ color: '#2b1b30' }))
+    gate.position.copy(toV((g1[0] + g2[0]) / 2, (g1[1] + g2[1]) / 2, 0.45))
+    gate.rotation.y = -Math.atan2(g2[1] - g1[1], g2[0] - g1[0])
+    this.scene.add(gate)
 
-    // Bâtiments intérieurs (casernement, casemates) : volumes schématiques
-    const bMat = new THREE.MeshStandardMaterial({ color: C.building, roughness: 0.9, flatShading: true })
+    // Bâtiments de 1944 (d'après le plan schématique)
+    const colors: Record<Kind, string> = { detenus: '#e9dcc2', garnison: '#cdbb9a', internes: '#bfae8f', kommandantur: '#ddd0b6', garde: '#d6c8ad', annexe: '#d8cab0' }
     const rMat = new THREE.MeshStandardMaterial({ color: C.roof, roughness: 0.8, flatShading: true })
-    for (const [x, y, w, h] of BUILDINGS) {
-      const bw = w / S, bd = h / S
-      const body = new THREE.Mesh(new THREE.BoxGeometry(bw, 0.7, bd), bMat)
-      body.position.copy(toV(x + w / 2, y + h / 2, 0.35)); body.castShadow = body.receiveShadow = true
-      const roof = new THREE.Mesh(new THREE.CylinderGeometry(0.01, bd * 0.72, 0.45, 4, 1), rMat)
-      roof.rotation.y = Math.PI / 4; roof.scale.set(bw / bd, 1, 1)
-      roof.position.copy(body.position).add(new THREE.Vector3(0, 0.57, 0)); roof.castShadow = true
-      this.scene.add(body, roof)
+    for (const b of BUILDINGS) {
+      const bw = b.w / S, bd = b.h / S
+      const g = new THREE.Group()
+      const body = new THREE.Mesh(new THREE.BoxGeometry(bw, b.height, bd), new THREE.MeshStandardMaterial({ color: colors[b.kind], roughness: 0.9, flatShading: true }))
+      body.position.y = b.height / 2; body.castShadow = body.receiveShadow = true
+      g.add(body)
+      if (b.kind === 'internes' || b.kind === 'garnison') {
+        // casemates : voûte en berceau, à demi enterrées dans le rempart
+        const vault = new THREE.Mesh(new THREE.CylinderGeometry(bd / 2, bd / 2, bw, 16, 1, false, 0, Math.PI), new THREE.MeshStandardMaterial({ color: C.wallTop, roughness: 1, flatShading: true }))
+        vault.rotation.z = Math.PI / 2; vault.rotation.x = Math.PI / 2; vault.position.y = b.height; vault.castShadow = true
+        g.add(vault)
+      } else {
+        const roof = new THREE.Mesh(new THREE.CylinderGeometry(0.01, bd * 0.72, 0.42, 4, 1), rMat)
+        roof.rotation.y = Math.PI / 4; roof.scale.set(bw / bd, 1, 1); roof.position.y = b.height + 0.21; roof.castShadow = true
+        g.add(roof)
+      }
+      g.position.copy(toV(b.x, b.y)); g.rotation.y = -THREE.MathUtils.degToRad(b.rot)
+      this.scene.add(g)
+      if (b.label) this.addLabel(b.label, toV(b.x, b.y, b.height + 0.9))
     }
 
-    // Tour hertzienne : repère visuel du site aujourd'hui (silhouette indicative)
-    const tower = new THREE.Group()
-    const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.34, 7.5, 12), new THREE.MeshStandardMaterial({ color: '#cfc6bb', roughness: 0.7 }))
-    shaft.position.y = 3.75; shaft.castShadow = true
-    const cab = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 0.6, 16), new THREE.MeshStandardMaterial({ color: '#b9aea2' }))
-    cab.position.y = 6.6
-    const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.05, 2.2, 6), new THREE.MeshStandardMaterial({ color: '#8d8378' }))
-    mast.position.y = 8.6
-    const light = new THREE.Mesh(new THREE.SphereGeometry(0.09, 12, 8), new THREE.MeshBasicMaterial({ color: '#ff4d4d' }))
-    light.position.y = 9.75
-    tower.add(shaft, cab, mast, light); tower.position.copy(toV(720, 245)); tower.scale.setScalar(0.85); this.scene.add(tower)
+    // Cour des détenus grillagée, coupée en deux (femmes / hommes)
+    {
+      const e = ENCLOSURE, w = e.w / S, d = e.h / S, hgt = 0.55
+      const g = new THREE.Group()
+      const fenceMat = new THREE.MeshBasicMaterial({ color: '#3a2a2a', transparent: true, opacity: 0.55, side: THREE.DoubleSide, wireframe: true })
+      const side = (len: number) => new THREE.Mesh(new THREE.PlaneGeometry(len, hgt, Math.round(len * 6), 3), fenceMat)
+      const n = side(w); n.position.set(0, hgt / 2, -d / 2)
+      const so = side(w); so.position.set(0, hgt / 2, d / 2)
+      const ea = side(d); ea.rotation.y = Math.PI / 2; ea.position.set(w / 2, hgt / 2, 0)
+      const we = side(d); we.rotation.y = Math.PI / 2; we.position.set(-w / 2, hgt / 2, 0)
+      const mid = side(w); mid.position.set(0, hgt / 2, 0)
+      const floor = new THREE.Mesh(new THREE.PlaneGeometry(w, d), new THREE.MeshStandardMaterial({ color: '#c9b48c', roughness: 1 }))
+      floor.rotation.x = -Math.PI / 2; floor.position.y = 0.03; floor.receiveShadow = true
+      g.add(floor, n, so, ea, we, mid)
+      g.position.copy(toV(e.x, e.y)); g.rotation.y = -THREE.MathUtils.degToRad(e.rot)
+      this.scene.add(g)
+      for (const c of COURTS) this.addLabel(c.label, toV(c.x, c.y, 0.9), true)
+    }
+
+    // Miradors : tours de guet en bois
+    const wood = new THREE.MeshStandardMaterial({ color: '#5b4330', roughness: 1, flatShading: true })
+    for (const m of MIRADORS) {
+      const t = new THREE.Group()
+      for (const [dx, dz] of [[-0.22, -0.22], [0.22, -0.22], [-0.22, 0.22], [0.22, 0.22]]) {
+        const leg = new THREE.Mesh(new THREE.BoxGeometry(0.06, 2.1, 0.06), wood); leg.position.set(dx, 1.05, dz); leg.castShadow = true; t.add(leg)
+      }
+      const cab = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.45, 0.7), wood); cab.position.y = 2.3; cab.castShadow = true
+      const roof = new THREE.Mesh(new THREE.ConeGeometry(0.62, 0.38, 4), new THREE.MeshStandardMaterial({ color: '#3b2a22', flatShading: true }))
+      roof.position.y = 2.72; roof.rotation.y = Math.PI / 4
+      t.add(cab, roof); t.position.copy(toV(m.x, m.y)); this.scene.add(t)
+      if (m.label) this.addLabel(m.label, toV(m.x, m.y, 3.3))
+    }
+
+    // Route goudronnée (camions et cars de détenus) et chemin d'accès
+    const ribbon = (pts: Pt[], width: number, color: string, y: number) => {
+      const curve = new THREE.CatmullRomCurve3(pts.map(([x, z]) => toV(x, z, y)))
+      const tube = new THREE.Mesh(new THREE.TubeGeometry(curve, 80, width, 4, false), new THREE.MeshStandardMaterial({ color, roughness: 1 }))
+      tube.scale.y = 0.15; tube.receiveShadow = true
+      this.scene.add(tube)
+    }
+    ribbon(ROUTE, 0.32, '#4a4248', 0.05)
+    ribbon(PATH, 0.22, '#e3d4b6', 0.05)
 
     // Arbres autour du fort (InstancedMesh pour rester léger sur mobile)
     const rnd = (s: number) => { const x = Math.sin(s * 12.9898) * 43758.5453; return x - Math.floor(x) }
@@ -206,6 +249,25 @@ export class FortScene {
       trees.setMatrixAt(i, m.compose(p, q, sc))
     }
     trees.castShadow = true; this.scene.add(trees)
+  }
+
+  private labels: THREE.Sprite[] = []
+
+  /** Étiquette flottante (nom d'un bâtiment), visible en vue d'ensemble. */
+  private addLabel(text: string, at: THREE.Vector3, hand = false) {
+    const c = document.createElement('canvas'); const g = c.getContext('2d')!
+    const font = hand ? '600 44px Caveat, cursive' : '600 30px Inter, system-ui, sans-serif'
+    g.font = font; const w = Math.ceil(g.measureText(text).width) + 36
+    c.width = w; c.height = 64
+    g.font = font
+    if (!hand) { g.fillStyle = 'rgba(251,247,239,.92)'; g.beginPath(); g.roundRect(0, 6, w, 52, 8); g.fill() }
+    g.fillStyle = hand ? '#fbf3e8' : '#2b1b30'; g.textAlign = 'center'; g.textBaseline = 'middle'
+    if (hand) { g.shadowColor = 'rgba(0,0,0,.6)'; g.shadowBlur = 8 }
+    g.fillText(text, w / 2, 34)
+    const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace
+    const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, transparent: true, depthTest: false, opacity: 0 }))
+    sp.scale.set((w / 64) * 0.62, 0.62, 1); sp.position.copy(at); sp.renderOrder = 5
+    this.scene.add(sp); this.labels.push(sp)
   }
 
   setPins(pins: PinData[], current?: number) {
@@ -258,8 +320,8 @@ export class FortScene {
     this.arrived = false
     this.controls.autoRotate = false
     const V = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z)
-    if (v.kind === 'hero') { this.base = { pos: V(19, 5.2, 17), target: V(0, 1.6, 0) }; this.shiftGoal = 0.12 }
-    if (v.kind === 'overview') { this.base = { pos: V(2, 19, 15), target: V(0, 0, 0.5) }; this.shiftGoal = 0.2 }
+    if (v.kind === 'hero') { this.base = { pos: V(12.5, 4.6, 11.5), target: V(0, 1.2, 0) }; this.shiftGoal = 0.1 }
+    if (v.kind === 'overview') { this.base = { pos: V(3, 17, 14), target: V(0, 0, 0.5) }; this.shiftGoal = 0.2 }
     if (v.kind === 'sky') { this.base = { pos: V(0, 27, 7), target: V(0, 0, 0) }; this.shiftGoal = 0.16 }
     if (v.kind === 'focus') {
       const target = toV(v.x, v.y, 1)
@@ -352,6 +414,8 @@ export class FortScene {
       const idx = this.threadMesh.geometry.index!
       this.threadMesh.geometry.setDrawRange(0, Math.floor(idx.count * this.threadProgress / 6) * 6)
     }
+    const wantLabels = this.view.kind === 'overview' || this.view.kind === 'sky' ? 1 : 0
+    for (const l of this.labels) { const m = l.material as THREE.SpriteMaterial; m.opacity += (wantLabels - m.opacity) * Math.min(1, dt * 4) }
     this.controls.update()
     this.renderer.render(this.scene, this.camera)
   }

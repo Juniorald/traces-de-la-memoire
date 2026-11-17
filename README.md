@@ -1,4 +1,4 @@
-# Les Traces de la Mémoire – prototype v0.5
+# Les Traces de la Mémoire – prototype v0.6
 
 Prototype visiteur de l’enquête pilote, construit avec la pile technique du dossier de conception :
 
@@ -50,6 +50,16 @@ server/index.js              # API Express
 Thème « dossier d’enquête » : papier, fiches, tampons, carnet manuscrit, plan à l’encre et fil rouge.
 Polices embarquées (Fontsource, licence OFL) : Fraunces (titres), Inter (texte), Special Elite (machine à écrire), Caveat (écriture manuscrite).
 Les illustrations (`src/illustrations/`) sont des créations SVG originales : elles ne représentent aucune personne réelle, ne sont pas des archives et sont toujours légendées « Illustration ».
+
+## Disposition du Fort (1944)
+
+La maquette 3D et le plan 2D (`src/three/layout.ts`) suivent le plan schématique d’août 1944 transmis par le
+Mémorial national des femmes en résistance et en déportation : 4 bastions, bâtiment des détenus, cour grillagée
+séparée en cour des femmes et cour des hommes, casemates de la garnison et des internés, Kommandantur, poste de garde,
+miradors, route des camions et des cars. Les proportions sont indicatives et les emplacements des étapes restent à valider.
+
+Les scans fournis par le Mémorial (plan publié dans un ouvrage, photographies de Brassaï prises à la Libération)
+**ne sont pas intégrés au dépôt public** : leur diffusion en ligne nécessite l’autorisation des ayants droit.
 
 ## Photographies
 

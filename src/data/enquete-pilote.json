@@ -16,11 +16,11 @@
       "consigne": "Observez la première trace. Avant de l’interpréter, demandez-vous d’où elle vient.",
       "lieu": {
         "id": 11,
-        "nom": "Départ du parcours",
-        "description": "Point d’accueil du parcours (emplacement à valider).",
+        "nom": "Entrée du Fort (poste de garde)",
+        "description": "Emplacement indicatif d’après le plan de 1944, à valider avec le Mémorial.",
         "plan": {
-          "x": 150,
-          "y": 470
+          "x": 440,
+          "y": 422
         },
         "accessible": true,
         "site": "Fort de Romainville"
@@ -73,11 +73,11 @@
       "consigne": "Découvrez son environnement avant l’arrestation à travers un témoignage.",
       "lieu": {
         "id": 12,
-        "nom": "Point d’intérêt 1",
-        "description": "Emplacement à valider avec le Fort.",
+        "nom": "Chemin d’accès vers la cour",
+        "description": "Emplacement indicatif d’après le plan de 1944, à valider avec le Mémorial.",
         "plan": {
-          "x": 300,
-          "y": 160
+          "x": 478,
+          "y": 352
         },
         "accessible": true,
         "site": "Fort de Romainville"
@@ -130,11 +130,11 @@
       "consigne": "Que dit ce document de son rôle dans la Résistance ?",
       "lieu": {
         "id": 13,
-        "nom": "Point d’intérêt 2",
-        "description": "Emplacement à valider avec le Fort.",
+        "nom": "Bâtiment des détenus",
+        "description": "Emplacement indicatif d’après le plan de 1944, à valider avec le Mémorial.",
         "plan": {
-          "x": 640,
-          "y": 130
+          "x": 500,
+          "y": 168
         },
         "accessible": true,
         "site": "Fort de Romainville"
@@ -187,11 +187,11 @@
       "consigne": "Que reste-t-il de ce lieu aujourd’hui ?",
       "lieu": {
         "id": 14,
-        "nom": "Point lié à l’internement",
-        "description": "Point physique uniquement après validation du lieu.",
+        "nom": "Casemates des internés",
+        "description": "Emplacement indicatif d’après le plan de 1944, à valider avec le Mémorial.",
         "plan": {
-          "x": 850,
-          "y": 320
+          "x": 694,
+          "y": 252
         },
         "accessible": true,
         "site": "Fort de Romainville"
@@ -258,11 +258,11 @@
       "consigne": "Quelles autres femmes croisent son parcours ?",
       "lieu": {
         "id": 15,
-        "nom": "Point final",
-        "description": "Emplacement à valider avec le Fort.",
+        "nom": "Route des convois",
+        "description": "Emplacement indicatif d’après le plan de 1944, à valider avec le Mémorial.",
         "plan": {
-          "x": 560,
-          "y": 500
+          "x": 565,
+          "y": 124
         },
         "accessible": true,
         "site": "Fort de Romainville"
