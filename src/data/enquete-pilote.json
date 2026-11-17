@@ -235,7 +235,21 @@
         ],
         "explication": "Une reconstitution aide à se représenter un lieu, mais ce n’est pas un document d’époque : le dispositif la signale toujours comme telle."
       },
-      "illustration": "fort"
+      "illustration": "fort",
+      "photos": [
+        {
+          "fichier": "Porte du fort de Romainville.jpg",
+          "legende": "L’entrée du Fort aujourd’hui (photographie de 2017).",
+          "nature": "photo_actuelle",
+          "credit": "Wikimedia Commons – licence libre, auteur et licence exacte à vérifier sur la page du fichier"
+        },
+        {
+          "fichier": "BF 2 - LES LILAS - Panorama du Fort de Romainville (coté Nord-Est).JPG",
+          "legende": "Panorama du Fort côté nord-est, carte postale ancienne du début du XXe siècle, avant la guerre.",
+          "nature": "carte_postale",
+          "credit": "Wikimedia Commons – licence libre, auteur et licence exacte à vérifier sur la page du fichier"
+        }
+      ]
     },
     {
       "id": 105,
@@ -292,7 +306,15 @@
         ],
         "explication": "Chaque lien de la fresque repose sur une archive justificative (RelationHistorique → Archive). Pas de lien « supposé » non signalé."
       },
-      "illustration": "liens"
+      "illustration": "liens",
+      "photos": [
+        {
+          "fichier": "Plaque convoi des 31000 Fort de Romainville.jpg",
+          "legende": "Plaque à la mémoire des résistantes parties de Romainville pour Auschwitz (convoi des 31000).",
+          "nature": "plaque",
+          "credit": "Wikimedia Commons – licence libre, auteur et licence exacte à vérifier sur la page du fichier"
+        }
+      ]
     }
   ]
 }

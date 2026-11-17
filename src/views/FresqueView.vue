@@ -22,7 +22,7 @@ function restart() { p.reset(); router.push('/') }
 
     <div v-if="!complete" class="sheet stack">
       <p>La fresque s’ouvre une fois les {{ enquete.etapes.length }} pièces classées.</p>
-      <RouterLink class="btn ghost" :to="`/enquete/${id}`">← Retour au plan</RouterLink>
+      <RouterLink class="btn ghost" :to="`/enquete/${id}`">Retour au plan</RouterLink>
     </div>
 
     <template v-else>
@@ -36,7 +36,7 @@ function restart() { p.reset(); router.push('/') }
         <p class="eyebrow">Votre carnet d’enquête</p>
         <ol class="recap">
           <li v-for="e in enquete.etapes" :key="e.id">
-            <span class="t">{{ String(e.ordre).padStart(2, '0') }} · {{ e.titre }}</span>
+            <span class="t">{{ e.ordre }}. {{ e.titre }}</span>
             <span class="hand">{{ p.notes[e.id] || '—' }}</span>
           </li>
         </ol>

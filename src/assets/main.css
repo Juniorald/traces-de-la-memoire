@@ -49,7 +49,7 @@ a { color: var(--plum); }
 .stack > * + * { margin-top: 16px; }
 
 /* Typo d'archive */
-.eyebrow { font: 13px/1.3 var(--type); letter-spacing: .04em; color: var(--mute); text-transform: uppercase; }
+.eyebrow { font: 14px/1.3 var(--type); color: var(--mute); margin: 0; }
 .hand { font-family: var(--hand); font-size: 22px; line-height: 1.15; color: var(--plum); }
 .muted { color: var(--mute); }
 .small { font-size: 13.5px; }

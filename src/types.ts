@@ -29,6 +29,14 @@ export interface OptionReponse { id: string; texte: string; correcte: boolean }
 
 export interface Question { id: number; libelle: string; options: OptionReponse[]; explication: string }
 
+/** Photographie du lieu (photo actuelle ou carte postale ancienne), avec crédit obligatoire. */
+export interface Photo {
+  fichier: string
+  legende: string
+  nature: 'photo_actuelle' | 'carte_postale' | 'plaque'
+  credit: string
+}
+
 export interface Etape {
   id: number
   ordre: number
@@ -39,6 +47,7 @@ export interface Etape {
   question: Question
   /** Illustration d'ambiance (création graphique, jamais présentée comme une archive). */
   illustration?: string
+  photos?: Photo[]
 }
 
 export interface Enquete {

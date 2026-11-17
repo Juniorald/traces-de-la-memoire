@@ -1,4 +1,4 @@
-# Les Traces de la Mémoire – prototype v0.3
+# Les Traces de la Mémoire – prototype v0.4
 
 Prototype visiteur de l’enquête pilote, construit avec la pile technique du dossier de conception :
 
@@ -8,6 +8,7 @@ Prototype visiteur de l’enquête pilote, construit avec la pile technique du d
 | Outillage | **Vite** |
 | Navigation | **Vue Router** (routes `/enquete/:id/etape/:ordre`, `/e/:etapeId` pour les QR codes) |
 | État | **Pinia**, progression et carnet enregistrés dans le navigateur (`localStorage`) |
+| Maquette 3D | **Three.js** : Fort schématique au crépuscule, punaises cliquables, fil rouge animé (chargé à la demande, repli 2D automatique) |
 | Carte | **Leaflet** en mode `CRS.Simple` : plan interne du Fort, sans GPS |
 | API | **Node.js / Express** (routes publiques `GET /api/enquetes/:id`, `/api/etapes/:id`, `/api/lieux`) |
 
@@ -49,6 +50,16 @@ server/index.js              # API Express
 Thème « dossier d’enquête » : papier, fiches, tampons, carnet manuscrit, plan à l’encre et fil rouge.
 Polices embarquées (Fontsource, licence OFL) : Fraunces (titres), Inter (texte), Special Elite (machine à écrire), Caveat (écriture manuscrite).
 Les illustrations (`src/illustrations/`) sont des créations SVG originales : elles ne représentent aucune personne réelle, ne sont pas des archives et sont toujours légendées « Illustration ».
+
+## Photographies
+
+Les photos du Fort (vue actuelle, porte d’entrée, plaques commémoratives, carte postale ancienne) sont affichées directement depuis
+**Wikimedia Commons**, avec un lien vers la page de chaque fichier. Commons n’accepte que des contenus sous licence libre
+ou dans le domaine public, mais **l’auteur et la licence exacte de chaque image doivent être vérifiés et recopiés dans `src/data/`**
+avant toute diffusion publique. Si une image ne charge pas, un cadre de remplacement s’affiche.
+
+Aucune photo de résistante n’est intégrée : les portraits relèvent des archives (SHD, familles, associations) et nécessitent
+une autorisation de diffusion. Les emplacements « pièce » de l’enquête sont prévus pour les recevoir.
 
 ## Règles du dossier respectées
 

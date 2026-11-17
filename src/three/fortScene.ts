@@ -1,0 +1,319 @@
+// Maquette 3D schématique du Fort (Three.js).
+// Même repère que le plan 2D : coordonnées « plan » 1000 × 600 converties en mètres-scène.
+// Volumes indicatifs, non contractuels : à remplacer par un relevé validé.
+import * as THREE from 'three'
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
+
+export interface PinData { ordre: number; titre: string; x: number; y: number; state: 'done' | 'current' | 'locked'; reachable: boolean }
+export interface SceneOptions { mode: 'hero' | 'map'; onSelect?: (ordre: number) => void; reducedMotion?: boolean }
+
+const S = 50 // 50 px de plan = 1 unité 3D
+const toV = (x: number, y: number, h = 0) => new THREE.Vector3((x - 500) / S, h, (y - 300) / S)
+
+const OUTER = [[120, 500], [70, 300], [140, 90], [330, 40], [640, 50], [880, 120], [940, 330], [860, 520], [600, 560], [300, 560]]
+const INNER = [[150, 480], [108, 300], [168, 118], [340, 74], [628, 82], [850, 145], [902, 330], [830, 494], [592, 528], [310, 528]]
+const BUILDINGS = [[330, 200, 150, 70], [520, 200, 150, 70], [400, 330, 200, 60], [230, 310, 90, 120]]
+
+const C = {
+  sky: '#2a1d36', horizon: '#c98a6b', ground: '#cdb994', moat: '#8d7b5b', wallSide: '#b39874', wallTop: '#7f8a5e',
+  court: '#d8c7a2', building: '#e6d8bd', roof: '#6d4f5c', tree: '#4d5a3a', red: '#c8232c', plum: '#7a2860', locked: '#8a7a8d',
+}
+
+function shapeFrom(points: number[][], scale = 1) {
+  const cx = 500, cy = 300
+  const s = new THREE.Shape()
+  points.forEach(([x, y], i) => {
+    const px = (cx + (x - cx) * scale - 500) / S
+    const py = (cy + (y - cy) * scale - 300) / S
+    i ? s.lineTo(px, py) : s.moveTo(px, py)
+  })
+  s.closePath()
+  return s
+}
+
+function skyTexture() {
+  const c = document.createElement('canvas'); c.width = 4; c.height = 256
+  const g = c.getContext('2d')!
+  const grad = g.createLinearGradient(0, 0, 0, 256)
+  grad.addColorStop(0, C.sky); grad.addColorStop(0.55, '#6b3f55'); grad.addColorStop(0.85, C.horizon); grad.addColorStop(1, '#e9c39a')
+  g.fillStyle = grad; g.fillRect(0, 0, 4, 256)
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace
+  return t
+}
+
+function numberSprite(n: number) {
+  const c = document.createElement('canvas'); c.width = c.height = 128
+  const g = c.getContext('2d')!
+  g.fillStyle = '#fbf7ef'; g.beginPath(); g.arc(64, 64, 54, 0, Math.PI * 2); g.fill()
+  g.strokeStyle = '#2b1b30'; g.lineWidth = 6; g.stroke()
+  g.fillStyle = '#2b1b30'; g.font = '700 64px Inter, system-ui, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'
+  g.fillText(String(n), 64, 70)
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, depthTest: false, transparent: true }))
+  s.scale.set(0.62, 0.62, 1); s.renderOrder = 10
+  return s
+}
+
+export class FortScene {
+  private renderer: THREE.WebGLRenderer
+  private scene = new THREE.Scene()
+  private camera: THREE.PerspectiveCamera
+  private controls: OrbitControls
+  private pinGroup = new THREE.Group()
+  private threadMesh: THREE.Mesh | null = null
+  private threadProgress = 1
+  private pulse: THREE.Mesh
+  private heads: { mesh: THREE.Mesh; ordre: number; reachable: boolean }[] = []
+  private ray = new THREE.Raycaster()
+  private pointer = new THREE.Vector2()
+  private clock = new THREE.Clock()
+  private raf = 0
+  private visible = true
+  private camGoal: { pos: THREE.Vector3; target: THREE.Vector3 } | null = null
+  private ro: ResizeObserver
+  private io: IntersectionObserver
+  private down = { x: 0, y: 0 }
+
+  constructor(private host: HTMLElement, private opts: SceneOptions) {
+    this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false })
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+    this.renderer.shadowMap.enabled = true
+    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap
+    this.renderer.toneMapping = THREE.ACESFilmicToneMapping
+    this.renderer.toneMappingExposure = 1.05
+    host.appendChild(this.renderer.domElement)
+
+    this.camera = new THREE.PerspectiveCamera(38, 1, 0.1, 200)
+    if (opts.mode === 'hero') this.camera.position.set(19, 5.2, 17)
+    else this.camera.position.set(0, 17, 17)
+
+    this.controls = new OrbitControls(this.camera, this.renderer.domElement)
+    this.controls.enableDamping = true
+    this.controls.enablePan = false
+    this.controls.minDistance = 7
+    this.controls.maxDistance = 32
+    this.controls.maxPolarAngle = 1.32
+    this.controls.target.set(0, opts.mode === 'hero' ? 1.6 : 0, 0)
+    this.controls.autoRotate = opts.mode === 'hero' && !opts.reducedMotion
+    this.controls.autoRotateSpeed = 0.45
+    if (opts.mode === 'hero') { this.controls.enableZoom = false }
+
+    this.scene.background = skyTexture()
+    this.scene.fog = new THREE.Fog('#b98471', 26, 70)
+
+    this.buildWorld()
+    this.scene.add(this.pinGroup)
+
+    this.pulse = new THREE.Mesh(new THREE.RingGeometry(0.45, 0.62, 48), new THREE.MeshBasicMaterial({ color: C.red, transparent: true, opacity: 0.8, side: THREE.DoubleSide }))
+    this.pulse.rotation.x = -Math.PI / 2; this.pulse.visible = false
+    this.scene.add(this.pulse)
+
+    const el = this.renderer.domElement
+    el.addEventListener('pointerdown', (e) => { this.down = { x: e.clientX, y: e.clientY } })
+    el.addEventListener('pointerup', this.onUp)
+    el.addEventListener('pointermove', this.onMove)
+
+    this.ro = new ResizeObserver(() => this.resize()); this.ro.observe(host)
+    this.io = new IntersectionObserver(([e]) => { this.visible = e.isIntersecting }); this.io.observe(host)
+    this.resize()
+    this.loop()
+  }
+
+  private buildWorld() {
+    const hemi = new THREE.HemisphereLight('#f6dcc4', '#3a2640', 1.25); this.scene.add(hemi)
+    const sun = new THREE.DirectionalLight('#ffc996', 2.4)
+    sun.position.set(-14, 9, 8); sun.castShadow = true
+    sun.shadow.mapSize.set(2048, 2048)
+    Object.assign(sun.shadow.camera, { left: -16, right: 16, top: 16, bottom: -16, near: 1, far: 50 })
+    sun.shadow.bias = -0.0008
+    this.scene.add(sun)
+
+    const ground = new THREE.Mesh(new THREE.CircleGeometry(80, 64), new THREE.MeshStandardMaterial({ color: C.ground, roughness: 1 }))
+    ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; this.scene.add(ground)
+
+    // Fossé (anneau légèrement plus sombre autour de l'enceinte)
+    const moatShape = shapeFrom(OUTER, 1.13); moatShape.holes.push(shapeFrom(OUTER, 1.0))
+    const moat = new THREE.Mesh(new THREE.ShapeGeometry(moatShape), new THREE.MeshStandardMaterial({ color: C.moat, roughness: 1, side: THREE.DoubleSide }))
+    moat.rotation.x = Math.PI / 2; moat.position.y = 0.01; moat.receiveShadow = true; this.scene.add(moat)
+
+    // Enceinte bastionnée : forme extérieure moins la cour intérieure, extrudée
+    const wallShape = shapeFrom(OUTER); wallShape.holes.push(shapeFrom(INNER))
+    const wallGeo = new THREE.ExtrudeGeometry(wallShape, { depth: 1.1, bevelEnabled: true, bevelThickness: 0.08, bevelSize: 0.08, bevelSegments: 1 })
+    const walls = new THREE.Mesh(wallGeo, [
+      new THREE.MeshStandardMaterial({ color: C.wallTop, roughness: 0.95, flatShading: true }),
+      new THREE.MeshStandardMaterial({ color: C.wallSide, roughness: 0.9, flatShading: true }),
+    ])
+    walls.rotation.x = Math.PI / 2; walls.position.y = 1.1
+    walls.castShadow = true; walls.receiveShadow = true
+    this.scene.add(walls)
+
+    const courtShape = shapeFrom(INNER)
+    const court = new THREE.Mesh(new THREE.ShapeGeometry(courtShape), new THREE.MeshStandardMaterial({ color: C.court, roughness: 1, side: THREE.DoubleSide }))
+    court.rotation.x = Math.PI / 2; court.position.y = 0.02; court.receiveShadow = true; this.scene.add(court)
+
+    // Porte d'entrée (côté sud)
+    const gate = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.85, 0.5), new THREE.MeshStandardMaterial({ color: '#2b1b30' }))
+    gate.position.copy(toV(450, 556, 0.42)); this.scene.add(gate)
+
+    // Bâtiments intérieurs (casernement, casemates) : volumes schématiques
+    const bMat = new THREE.MeshStandardMaterial({ color: C.building, roughness: 0.9, flatShading: true })
+    const rMat = new THREE.MeshStandardMaterial({ color: C.roof, roughness: 0.8, flatShading: true })
+    for (const [x, y, w, h] of BUILDINGS) {
+      const bw = w / S, bd = h / S
+      const body = new THREE.Mesh(new THREE.BoxGeometry(bw, 0.7, bd), bMat)
+      body.position.copy(toV(x + w / 2, y + h / 2, 0.35)); body.castShadow = body.receiveShadow = true
+      const roof = new THREE.Mesh(new THREE.CylinderGeometry(0.01, bd * 0.72, 0.45, 4, 1), rMat)
+      roof.rotation.y = Math.PI / 4; roof.scale.set(bw / bd, 1, 1)
+      roof.position.copy(body.position).add(new THREE.Vector3(0, 0.57, 0)); roof.castShadow = true
+      this.scene.add(body, roof)
+    }
+
+    // Tour hertzienne : repère visuel du site aujourd'hui (silhouette indicative)
+    const tower = new THREE.Group()
+    const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.34, 7.5, 12), new THREE.MeshStandardMaterial({ color: '#cfc6bb', roughness: 0.7 }))
+    shaft.position.y = 3.75; shaft.castShadow = true
+    const cab = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 0.6, 16), new THREE.MeshStandardMaterial({ color: '#b9aea2' }))
+    cab.position.y = 6.6
+    const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.05, 2.2, 6), new THREE.MeshStandardMaterial({ color: '#8d8378' }))
+    mast.position.y = 8.6
+    const light = new THREE.Mesh(new THREE.SphereGeometry(0.09, 12, 8), new THREE.MeshBasicMaterial({ color: '#ff4d4d' }))
+    light.position.y = 9.75
+    tower.add(shaft, cab, mast, light); tower.position.copy(toV(720, 245)); tower.scale.setScalar(0.85); this.scene.add(tower)
+
+    // Arbres autour du fort (InstancedMesh pour rester léger sur mobile)
+    const rnd = (s: number) => { const x = Math.sin(s * 12.9898) * 43758.5453; return x - Math.floor(x) }
+    const treeGeo = new THREE.IcosahedronGeometry(0.55, 0)
+    const trees = new THREE.InstancedMesh(treeGeo, new THREE.MeshStandardMaterial({ color: C.tree, flatShading: true, roughness: 1 }), 90)
+    const m = new THREE.Matrix4(); const q = new THREE.Quaternion(); const sc = new THREE.Vector3(); const p = new THREE.Vector3()
+    for (let i = 0; i < 90; i++) {
+      const a = rnd(i + 1) * Math.PI * 2, r = 13.5 + rnd(i + 7) * 9
+      const s = 0.7 + rnd(i + 3) * 0.9
+      p.set(Math.cos(a) * r * 1.25, 0.45 * s, Math.sin(a) * r * 0.8); sc.set(s, s * (1.1 + rnd(i) * 0.5), s)
+      q.setFromEuler(new THREE.Euler(0, rnd(i + 9) * 3, 0))
+      trees.setMatrixAt(i, m.compose(p, q, sc))
+    }
+    trees.castShadow = true; this.scene.add(trees)
+  }
+
+  setPins(pins: PinData[], current?: number) {
+    this.pinGroup.clear(); this.heads = []
+    const pts: THREE.Vector3[] = []
+    for (const pin of pins) {
+      const g = new THREE.Group()
+      const color = pin.state === 'done' ? C.plum : pin.state === 'current' ? C.red : C.locked
+      const needle = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 1.6, 6), new THREE.MeshStandardMaterial({ color: '#9a9a9a', metalness: 0.6, roughness: 0.3 }))
+      needle.position.y = 0.8; needle.castShadow = true
+      const head = new THREE.Mesh(new THREE.SphereGeometry(0.3, 24, 16), new THREE.MeshStandardMaterial({ color, roughness: 0.35, emissive: pin.state === 'current' ? '#5a0a0f' : '#000000' }))
+      head.position.y = 1.7; head.castShadow = true
+      const label = numberSprite(pin.ordre); label.position.y = 2.35
+      g.add(needle, head, label); g.position.copy(toV(pin.x, pin.y))
+      g.userData = { ordre: pin.ordre, bob: pin.state === 'current' }
+      this.pinGroup.add(g)
+      this.heads.push({ mesh: head, ordre: pin.ordre, reachable: pin.reachable })
+      if (pin.state !== 'locked') pts.push(toV(pin.x, pin.y, 1.7))
+    }
+
+    // Fil rouge tendu entre les punaises des étapes atteintes
+    if (this.threadMesh) { this.scene.remove(this.threadMesh); this.threadMesh.geometry.dispose() }
+    this.threadMesh = null
+    if (pts.length > 1) {
+      const sag: THREE.Vector3[] = []
+      for (let i = 0; i < pts.length - 1; i++) {
+        const a = pts[i], b = pts[i + 1]
+        sag.push(a, a.clone().lerp(b, 0.5).add(new THREE.Vector3(0, -0.45, 0)))
+      }
+      sag.push(pts[pts.length - 1])
+      const curve = new THREE.CatmullRomCurve3(sag)
+      const geo = new THREE.TubeGeometry(curve, 160, 0.045, 8, false)
+      this.threadMesh = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color: C.red, emissive: '#7a0d14', roughness: 0.5 }))
+      this.threadMesh.castShadow = true
+      this.scene.add(this.threadMesh)
+      this.threadProgress = this.opts.reducedMotion ? 1 : 0 // le fil se déroule à l'apparition
+    }
+
+    const cur = pins.find((p) => p.ordre === current)
+    this.pulse.visible = !!cur
+    if (cur) this.pulse.position.copy(toV(cur.x, cur.y, 0.04))
+    if (cur && this.opts.mode === 'map') this.focus(cur.x, cur.y)
+  }
+
+  focus(x: number, y: number) {
+    const target = toV(x, y, 0.6)
+    const pos = target.clone().add(new THREE.Vector3(4, 11, 12.5))
+    if (this.opts.reducedMotion) { this.camera.position.copy(pos); this.controls.target.copy(target) } else this.camGoal = { pos, target }
+  }
+
+  private pick(e: PointerEvent) {
+    const r = this.renderer.domElement.getBoundingClientRect()
+    this.pointer.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1)
+    this.ray.setFromCamera(this.pointer, this.camera)
+    const hit = this.ray.intersectObjects(this.heads.map((h) => h.mesh))[0]
+    return hit ? this.heads.find((h) => h.mesh === hit.object) : undefined
+  }
+
+  private onMove = (e: PointerEvent) => {
+    if (this.opts.mode !== 'map') return
+    const h = this.pick(e)
+    this.renderer.domElement.style.cursor = h?.reachable ? 'pointer' : ''
+  }
+
+  private onUp = (e: PointerEvent) => {
+    if (Math.hypot(e.clientX - this.down.x, e.clientY - this.down.y) > 6) return // c'était une rotation
+    const h = this.pick(e)
+    if (h?.reachable) this.opts.onSelect?.(h.ordre)
+  }
+
+  private resize() {
+    const { clientWidth: w, clientHeight: h } = this.host
+    if (!w || !h) return
+    this.renderer.setSize(w, h, false)
+    this.camera.aspect = w / h
+    this.camera.updateProjectionMatrix()
+  }
+
+  private loop = () => {
+    this.raf = requestAnimationFrame(this.loop)
+    if (!this.visible) return
+    const dt = Math.min(this.clock.getDelta(), 0.05)
+    const t = this.clock.elapsedTime
+    if (this.camGoal) {
+      this.camera.position.lerp(this.camGoal.pos, 1 - Math.pow(0.02, dt))
+      this.controls.target.lerp(this.camGoal.target, 1 - Math.pow(0.02, dt))
+      if (this.camera.position.distanceTo(this.camGoal.pos) < 0.05) this.camGoal = null
+    }
+    if (!this.opts.reducedMotion) {
+      for (const g of this.pinGroup.children) if (g.userData.bob) g.children.forEach((c) => { if (c.position.y > 1) c.position.y = (c instanceof THREE.Sprite ? 2.35 : 1.7) + Math.sin(t * 2.4) * 0.12 })
+      const s = 1 + ((t * 0.8) % 1) * 1.4
+      this.pulse.scale.set(s, s, s);
+      (this.pulse.material as THREE.MeshBasicMaterial).opacity = 0.85 * (1 - ((t * 0.8) % 1))
+    }
+    if (this.threadMesh && this.threadProgress < 1) {
+      this.threadProgress = Math.min(1, this.threadProgress + dt * 0.6)
+      const idx = this.threadMesh.geometry.index!
+      this.threadMesh.geometry.setDrawRange(0, Math.floor(idx.count * this.threadProgress / 6) * 6)
+    }
+    this.controls.update()
+    this.renderer.render(this.scene, this.camera)
+  }
+
+  dispose() {
+    cancelAnimationFrame(this.raf)
+    this.ro.disconnect(); this.io.disconnect()
+    this.controls.dispose()
+    this.scene.traverse((o) => {
+      const mesh = o as THREE.Mesh
+      mesh.geometry?.dispose()
+      const mat = mesh.material as THREE.Material | THREE.Material[] | undefined
+      ;(Array.isArray(mat) ? mat : mat ? [mat] : []).forEach((mm) => mm.dispose())
+    })
+    this.renderer.dispose()
+    this.renderer.domElement.remove()
+  }
+}
+
+export function webglAvailable() {
+  try {
+    const c = document.createElement('canvas')
+    return !!(window.WebGL2RenderingContext && c.getContext('webgl2'))
+  } catch { return false }
+}

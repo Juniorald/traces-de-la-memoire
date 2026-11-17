@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import ArchiveSlot from '../components/ArchiveSlot.vue'
+import CommonsPhoto from '../components/CommonsPhoto.vue'
 import IllustrationFrame from '../components/IllustrationFrame.vue'
 import ProgressRail from '../components/ProgressRail.vue'
 import QuestionBlock from '../components/QuestionBlock.vue'
@@ -35,7 +36,7 @@ function next() {
     <ProgressRail :total="total" :is-done="p.isDone" :current="ordre" />
 
     <header class="head">
-      <p class="eyebrow">Étape {{ String(ordre).padStart(2, '0') }} / {{ String(total).padStart(2, '0') }} · {{ etape.lieu?.nom }}</p>
+      <p class="eyebrow">Étape {{ ordre }} sur {{ total }}, {{ etape.lieu?.nom }}</p>
       <h1>{{ etape.titre }}</h1>
     </header>
 
@@ -66,6 +67,11 @@ function next() {
         </div>
       </article>
 
+      <section v-if="etape.photos?.length" class="lieu stack">
+        <h2>Le lieu, en images</h2>
+        <CommonsPhoto v-for="ph in etape.photos" :key="ph.fichier" :photo="ph" />
+      </section>
+
       <article class="sheet">
         <QuestionBlock :question="etape.question" :chosen="chosen" @choose="(o) => p.answer(etape!.question.id, o)" />
       </article>
@@ -76,12 +82,12 @@ function next() {
       </article>
 
       <button class="btn red" :disabled="!chosen" @click="next">
-        {{ isLast ? 'Classer la pièce et tirer le fil rouge →' : 'Classer la pièce · étape suivante →' }}
+        {{ isLast ? 'Classer la pièce et voir la fresque' : 'Classer la pièce et continuer' }}
       </button>
       <p v-if="!chosen" class="small muted center">Choisissez une réponse pour continuer : chaque réponse est expliquée.</p>
     </template>
 
-    <RouterLink class="btn ghost" :to="`/enquete/${id}`">← Retour au plan</RouterLink>
+    <RouterLink class="btn ghost" :to="`/enquete/${id}`">Retour au plan</RouterLink>
   </section>
 </template>
 
@@ -92,6 +98,7 @@ function next() {
 .lock { text-align: center; padding-top: 26px; }
 .lock .stamp { font-size: 15px; }
 .rdv { font: 400 20px/1.35 var(--display); margin: 14px 0 0; }
+.lieu h2 { font-size: 22px; }
 .carnet { background: #fffdf6; padding: 14px 12px 6px; border-radius: 3px; box-shadow: var(--shadow); }
 .carnet label { display: block; padding-left: 4px; margin-bottom: 6px; }
 .center { text-align: center; margin-top: -4px; }
