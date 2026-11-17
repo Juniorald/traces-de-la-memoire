@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Archive } from '../types'
-import { docUrl, viewer } from '../stores/ui'
+import { docUrl, openDoc } from '../stores/ui'
 
 defineProps<{ docs: Archive[] }>()
 </script>
@@ -8,7 +8,7 @@ defineProps<{ docs: Archive[] }>()
 <template>
   <ul class="docs">
     <li v-for="(d, i) in docs" :key="d.id" :style="{ '--r': `${[-1.2, 0.9, -0.6, 1.1][i % 4]}deg` }">
-      <button class="tirage" :aria-label="`Agrandir : ${d.titre}`" @click="viewer = d">
+      <button class="tirage" :aria-label="`Agrandir : ${d.titre}`" @click="openDoc(d)">
         <img :src="docUrl(d.src!)" :alt="d.legende ?? d.titre" loading="lazy" />
         <span class="cap">{{ d.titre }}</span>
         <span class="by">{{ d.auteur }}</span>

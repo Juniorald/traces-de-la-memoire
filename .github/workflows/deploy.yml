@@ -17,8 +17,15 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    outputs:
+      latest: ${{ steps.latest.outputs.ok }}
     steps:
       - uses: actions/checkout@v4
+      # évite qu'une ancienne exécution restée en file d'attente republie une version dépassée
+      - id: latest
+        run: |
+          HEAD_SHA=$(git ls-remote https://github.com/${{ github.repository }} refs/heads/main | cut -f1)
+          if [ "$HEAD_SHA" = "${{ github.sha }}" ]; then echo "ok=true" >> "$GITHUB_OUTPUT"; else echo "ok=false" >> "$GITHUB_OUTPUT"; fi
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -31,6 +38,7 @@ jobs:
 
   deploy:
     needs: build
+    if: needs.build.outputs.latest == 'true'
     runs-on: ubuntu-latest
     environment:
       name: github-pages

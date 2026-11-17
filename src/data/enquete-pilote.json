@@ -42,7 +42,8 @@
             "src": "archives/graffitis.jpg",
             "auteur": "Brassaï",
             "date": "1944",
-            "legende": "« Prison de Romainville » (annotation au dos du tirage). Inscriptions laissées par des détenus sur une poutre."
+            "legende": "« Prison de Romainville » (annotation au dos du tirage). Inscriptions laissées par des détenus sur une poutre.",
+            "verso": "archives/graffitis-verso.jpg"
           }
         }
       ],
@@ -228,7 +229,8 @@
           "src": "archives/porte-cellule-10.jpg",
           "auteur": "Brassaï",
           "date": "1944",
-          "legende": "« Entrée d’une cellule à Romainville » (annotation au dos du tirage)."
+          "legende": "« Entrée d’une cellule à Romainville » (annotation au dos du tirage).",
+          "verso": "archives/porte-cellule-10-verso.jpg"
         }
       ]
     },
@@ -313,13 +315,14 @@
           "type": "photographie",
           "nature": "archive",
           "source": "Mémorial national des femmes en résistance et en déportation",
-          "cote": null,
+          "cote": "E141",
           "droits": "Diffusion autorisée par le Mémorial dans le cadre du projet Paris 8",
           "statut": "a_valider",
           "src": "archives/casemate-interieur.jpg",
           "auteur": "Brassaï",
           "date": "1944",
-          "legende": "Intérieur voûté avec des bancs (tirage annoté « Romainville »)."
+          "legende": "Intérieur voûté avec des bancs (tirage annoté « Romainville »).",
+          "verso": "archives/casemate-interieur-verso.jpg"
         },
         {
           "id": 542,
@@ -333,7 +336,8 @@
           "src": "archives/grille-20.jpg",
           "auteur": "Brassaï",
           "date": "1944",
-          "legende": "« Grille d’une prison de Romainville » (annotation au dos du tirage)."
+          "legende": "« Grille d’une prison de Romainville » (annotation au dos du tirage).",
+          "verso": "archives/grille-20-verso.jpg"
         },
         {
           "id": 543,

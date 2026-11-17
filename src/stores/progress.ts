@@ -18,7 +18,7 @@ function load(): Saved {
     const raw = localStorage.getItem(KEY)
     if (raw) return JSON.parse(raw)
   } catch { /* stockage indisponible : on repart de zéro */ }
-  return { unlocked: [1], done: [], answers: {}, notes: {} }
+  return { unlocked: [], done: [], answers: {}, notes: {} }
 }
 
 export const useProgress = defineStore('progress', () => {
@@ -42,7 +42,7 @@ export const useProgress = defineStore('progress', () => {
   function unlock(ordre: number) { if (!isUnlocked(ordre)) unlocked.value.push(ordre) }
   function complete(ordre: number) { if (!isDone(ordre)) done.value.push(ordre) }
   function answer(questionId: number, optionId: string) { answers.value[questionId] = optionId }
-  function reset() { unlocked.value = [1]; done.value = []; answers.value = {}; notes.value = {} }
+  function reset() { unlocked.value = []; done.value = []; answers.value = {}; notes.value = {} }
 
   return { unlocked, done, answers, notes, isUnlocked, isDone, isReachable, unlock, complete, answer, reset }
 })

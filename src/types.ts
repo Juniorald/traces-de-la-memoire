@@ -13,6 +13,8 @@ export interface Archive {
   statut: StatutPublication
   /** Image du document (chemin relatif dans public/), si disponible. */
   src?: string
+  /** Image du dos du tirage (annotations, tampons), si disponible. */
+  verso?: string
   auteur?: string
   date?: string
   legende?: string

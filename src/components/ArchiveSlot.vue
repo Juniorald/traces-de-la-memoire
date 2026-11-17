@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { Archive } from '../types'
-import { docUrl, viewer } from '../stores/ui'
+import { docUrl, openDoc } from '../stores/ui'
 
 const props = defineProps<{ archive: Archive; numero: number }>()
 const label = computed(() => ({ archive: 'Archive', temoignage: 'Témoignage', reconstitution: 'Reconstitution' }[props.archive.nature]))
@@ -14,7 +14,7 @@ const missing = (v: string | null) => v ?? '— à renseigner'
   <figure class="doc">
     <div class="folder">
       <span class="tab">Pièce n° {{ String(numero).padStart(2, '0') }} · {{ label }}</span>
-      <button v-if="archive.src" class="media real" :aria-label="`Agrandir : ${archive.titre}`" @click="viewer = archive">
+      <button v-if="archive.src" class="media real" :aria-label="`Agrandir : ${archive.titre}`" @click="openDoc(archive)">
         <img :src="docUrl(archive.src)" :alt="archive.legende ?? archive.titre" />
       </button>
       <div v-else class="media" :class="archive.nature">

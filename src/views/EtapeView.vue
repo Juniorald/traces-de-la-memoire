@@ -5,7 +5,7 @@ import ArchiveSlot from '../components/ArchiveSlot.vue'
 import CommonsPhoto from '../components/CommonsPhoto.vue'
 import DocStrip from '../components/DocStrip.vue'
 import { stage } from '../three/stage'
-import { setChapter } from '../stores/ui'
+import { panelOpen, setChapter } from '../stores/ui'
 import { watchEffect } from 'vue'
 import ProgressRail from '../components/ProgressRail.vue'
 import QuestionBlock from '../components/QuestionBlock.vue'
@@ -30,8 +30,9 @@ const note = computed({
 
 watchEffect(() => { if (etape.value) setChapter(`Étape ${props.ordre} sur ${total.value}, ${etape.value.lieu?.nom ?? ''}`, etape.value.titre, unlocked.value ? '' : 'Rendez-vous au point') })
 
-function unlock() { p.unlock(props.ordre); stage.ping(props.ordre) }
-function choose(o: string) { if (!etape.value) return; p.answer(etape.value.question.id, o); stage.ping(props.ordre) }
+// en arrivant, on replie le panneau pour voir les tirages se suspendre au fil rouge
+function unlock() { p.unlock(props.ordre); stage.ping(props.ordre); stage.nudge(); panelOpen.value = false }
+function choose(o: string) { if (!etape.value) return; p.answer(etape.value.question.id, o); stage.ping(props.ordre); stage.nudge() }
 
 function next() {
   p.complete(props.ordre)
@@ -71,7 +72,7 @@ function next() {
 
       <section v-if="etape.documents?.length" class="stack">
         <h2>Exposé sur le lieu</h2>
-        <p class="small muted">Ces tirages sont aussi exposés dans la maquette, autour de la punaise : touchez-les pour les agrandir.</p>
+        <p class="small muted">Ces tirages sont suspendus au fil rouge, devant vous dans la 3D : touchez-en un pour le prendre en main et le retourner.</p>
         <DocStrip :docs="etape.documents" />
       </section>
 

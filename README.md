@@ -1,4 +1,4 @@
-# Les Traces de la Mémoire – prototype v0.7
+# Les Traces de la Mémoire – prototype v1.0
 
 Prototype visiteur de l’enquête pilote, construit avec la pile technique du dossier de conception :
 
@@ -8,6 +8,9 @@ Prototype visiteur de l’enquête pilote, construit avec la pile technique du d
 | Outillage | **Vite** |
 | Navigation | **Vue Router** (routes `/enquete/:id/etape/:ordre`, `/e/:etapeId` pour les QR codes) |
 | État | **Pinia**, progression et carnet enregistrés dans le navigateur (`localStorage`) |
+| Visite à la première personne | À chaque étape, la caméra vole jusqu’au lieu et se pose à hauteur de visiteur ; on regarde autour en glissant le doigt ou en bougeant le téléphone (gyroscope) |
+| Tirages en 3D | Les photographies sont suspendues au fil rouge ; on les prend en main, on les fait tourner et on les **retourne pour lire le verso** (tampon Brassaï, annotations, numéros) |
+| Ambiance | Lumière propre à chaque étape (aube, matin, ciel couvert, soir, nuit), poussière en suspension, rendu cinéma (halo, vignette, grain), son d’ambiance synthétisé en option |
 | Immersion | Scène 3D plein écran en permanence ; contenus dans un panneau repliable (à droite sur ordinateur) ; tirages d’archives exposés sur des chevalets 3D autour de chaque punaise, agrandissables ; entrée cinématique par la porte du Fort |
 | Expérience 3D | **Three.js** : tout le site se joue dans une scène 3D unique du Fort au crépuscule. La caméra se déplace à chaque navigation (accueil → vue d’ensemble → étape → fresque) et tourne avec le défilement ; punaises cliquables, fil rouge qui se déroule, rebonds à chaque action. Chargé à la demande, repli 2D automatique sans WebGL, mouvements coupés si « réduire les animations » est activé. |
 | Carte | **Leaflet** en mode `CRS.Simple` : plan interne du Fort, sans GPS |

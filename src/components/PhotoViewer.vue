@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted } from 'vue'
+import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { docUrl, viewer } from '../stores/ui'
 
+const back = ref(false)
+watch(viewer, () => { back.value = false })
 const close = () => { viewer.value = null }
 const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') close() }
 onMounted(() => addEventListener('keydown', onKey))
@@ -12,7 +14,7 @@ onBeforeUnmount(() => removeEventListener('keydown', onKey))
   <Transition name="zoom">
     <div v-if="viewer?.src" class="viewer" role="dialog" aria-modal="true" :aria-label="viewer.titre" @click.self="close">
       <figure>
-        <img :src="docUrl(viewer.src)" :alt="viewer.legende ?? viewer.titre" />
+        <img :class="{ turned: back }" :src="docUrl(back && viewer.verso ? viewer.verso : viewer.src)" :alt="viewer.legende ?? viewer.titre" />
         <figcaption>
           <strong>{{ viewer.titre }}</strong>
           <span v-if="viewer.legende">{{ viewer.legende }}</span>
@@ -20,6 +22,7 @@ onBeforeUnmount(() => removeEventListener('keydown', onKey))
         </figcaption>
       </figure>
       <button class="close" aria-label="Fermer" @click="close">✕</button>
+      <button v-if="viewer.verso" class="turn" @click="back = !back">{{ back ? 'Revoir le recto' : 'Retourner le tirage' }}</button>
     </div>
   </Transition>
 </template>
@@ -32,6 +35,9 @@ figcaption { color: #f3e6d6; display: grid; gap: 4px; font-size: 14.5px; max-wid
 figcaption strong { font: 600 20px/1.2 var(--display); }
 .credit { font-size: 12px; opacity: .75; }
 .close { position: absolute; top: 14px; right: 14px; width: 44px; height: 44px; border-radius: 50%; border: 0; background: #fbf7ef; color: var(--ink); font-size: 18px; cursor: pointer; }
+.turn { position: absolute; top: 14px; left: 14px; border: 0; border-radius: 22px; padding: 12px 16px; background: var(--red); color: #fff; font: 600 14px/1 var(--sans); cursor: pointer; }
+img.turned { animation: turn .5s ease; }
+@keyframes turn { from { transform: perspective(900px) rotateY(90deg); } to { transform: none; } }
 .zoom-enter-active, .zoom-leave-active { transition: opacity .3s ease; }
 .zoom-enter-active img { transition: transform .45s cubic-bezier(.2,.8,.2,1); }
 .zoom-enter-from { opacity: 0; }
