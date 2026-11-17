@@ -36,16 +36,13 @@ body {
   font: 16px/1.55 var(--sans);
   -webkit-font-smoothing: antialiased;
   background-color: #2a1d36;
-  min-height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
   padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
 }
 h1, h2, h3 { font-family: var(--display); font-weight: 650; line-height: 1.08; margin: 0; letter-spacing: -.015em; font-variation-settings: 'SOFT' 50, 'WONK' 1; }
 h1 { font-size: clamp(30px, 8vw, 38px); }
 a { color: var(--plum); }
-.wrap { position: relative; z-index: 1; max-width: 480px; margin: 0 auto; padding: 0 18px 56px; perspective: 1400px; pointer-events: none; }
-.wrap > * { pointer-events: none; }
-.wrap > * > * { pointer-events: auto; }
-.wrap .scene-window, .wrap .scene-window * { pointer-events: none; }
 
 /* Transitions de page en 3D : la fiche bascule vers l'avant */
 .flip-enter-active, .flip-leave-active { transition: opacity .45s ease, transform .55s cubic-bezier(.2,.8,.2,1); transform-origin: 50% 0; }

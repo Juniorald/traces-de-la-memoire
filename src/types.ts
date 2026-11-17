@@ -11,6 +11,11 @@ export interface Archive {
   cote: string | null
   droits: string | null
   statut: StatutPublication
+  /** Image du document (chemin relatif dans public/), si disponible. */
+  src?: string
+  auteur?: string
+  date?: string
+  legende?: string
 }
 
 export interface Lieu {
@@ -48,6 +53,8 @@ export interface Etape {
   /** Illustration d'ambiance (création graphique, jamais présentée comme une archive). */
   illustration?: string
   photos?: Photo[]
+  /** Documents d'archives présentés sur le lieu (cadres dans la maquette 3D). */
+  documents?: Archive[]
 }
 
 export interface Enquete {

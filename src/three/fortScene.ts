@@ -11,7 +11,10 @@ export type View =
   | { kind: 'overview' }
   | { kind: 'focus'; x: number; y: number; ordre: number }
   | { kind: 'sky' }
-export interface SceneOptions { onSelect?: (ordre: number) => void; reducedMotion?: boolean }
+  | { kind: 'gate' }
+export interface FrameDoc { id: number; url: string; titre: string }
+export interface FrameSet { ordre: number; x: number; y: number; docs: FrameDoc[] }
+export interface SceneOptions { onSelect?: (ordre: number) => void; onPhoto?: (id: number) => void; reducedMotion?: boolean }
 
 const S = 40 // 40 px de plan = 1 unité 3D
 const toV = (x: number, y: number, h = 0) => new THREE.Vector3((x - CENTER[0]) / S, h, (y - CENTER[1]) / S)
@@ -168,6 +171,8 @@ export class FortScene {
     gate.position.copy(toV((g1[0] + g2[0]) / 2, (g1[1] + g2[1]) / 2, 0.45))
     gate.rotation.y = -Math.atan2(g2[1] - g1[1], g2[0] - g1[0])
     this.scene.add(gate)
+    this.gatePos.copy(gate.position)
+    this.gateDir.copy(gate.position).setY(0).normalize() // vers l'extérieur du Fort
 
     // Bâtiments de 1944 (d'après le plan schématique)
     const colors: Record<Kind, string> = { detenus: '#e9dcc2', garnison: '#cdbb9a', internes: '#bfae8f', kommandantur: '#ddd0b6', garde: '#d6c8ad', annexe: '#d8cab0' }
@@ -252,6 +257,55 @@ export class FortScene {
   }
 
   private labels: THREE.Sprite[] = []
+  private frames = new Map<number, { group: THREE.Group; n: number; s: number }>()
+  private frameMeshes: { mesh: THREE.Mesh; id: number }[] = []
+  private gatePos = new THREE.Vector3()
+  private gateDir = new THREE.Vector3(0, 0, 1)
+  private loader = new THREE.TextureLoader()
+
+  /** Direction (dans le plan horizontal) d'où la caméra regarde une étape. */
+  private focusDir(ordre: number) { return new THREE.Vector3(0, 0, 1).applyAxisAngle(new THREE.Vector3(0, 1, 0), -0.6 + ordre * 0.85) }
+
+  /** Expose les documents d'archives de chaque étape, sur des chevalets autour de la punaise. */
+  setFrames(sets: FrameSet[]) {
+    for (const { group } of this.frames.values()) this.scene.remove(group)
+    this.frames.clear(); this.frameMeshes = []
+    const wood = new THREE.MeshStandardMaterial({ color: '#3b2a22', roughness: 0.8 })
+    for (const set of sets) {
+      if (!set.docs.length) continue
+      const g = new THREE.Group()
+      const dir = this.focusDir(set.ordre)
+      const side = new THREE.Vector3(dir.z, 0, -dir.x)
+      const base = toV(set.x, set.y).sub(dir.clone().multiplyScalar(1.1))
+      set.docs.forEach((d, i) => {
+        const f = new THREE.Group()
+        const H = 1.5
+        const mat = new THREE.MeshBasicMaterial({ color: '#d8ccb6' })
+        const photo = new THREE.Mesh(new THREE.PlaneGeometry(H, H), mat)
+        this.loader.load(d.url, (tex) => {
+          tex.colorSpace = THREE.SRGBColorSpace
+          const a = tex.image.width / tex.image.height
+          photo.scale.set(a, 1, 1); border.scale.set(a + 0.12 / H, 1 + 0.12 / H, 1)
+          mat.map = tex; mat.color.set('#ffffff'); mat.needsUpdate = true
+        })
+        const border = new THREE.Mesh(new THREE.BoxGeometry(H, H, 0.06), new THREE.MeshStandardMaterial({ color: '#fbf7ef', roughness: 0.9 }))
+        border.position.z = -0.04; border.castShadow = true
+        photo.position.y = border.position.y = 0
+        const legs = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 1.2, 6), wood)
+        legs.position.set(0, -1.1, -0.1)
+        f.add(border, photo, legs)
+        const lateral = (i - (set.docs.length - 1) / 2) * 1.85
+        f.position.copy(base).add(side.clone().multiplyScalar(lateral)).add(new THREE.Vector3(0, 1.75, 0))
+        f.position.add(dir.clone().multiplyScalar(-Math.abs(lateral) * 0.25)) // léger arc de cercle
+        f.lookAt(f.position.clone().add(dir))
+        g.add(f)
+        this.frameMeshes.push({ mesh: photo, id: d.id })
+      })
+      g.children.forEach((c) => c.scale.setScalar(0.001)); g.visible = false
+      this.scene.add(g)
+      this.frames.set(set.ordre, { group: g, n: set.docs.length, s: 0.001 })
+    }
+  }
 
   /** Étiquette flottante (nom d'un bâtiment), visible en vue d'ensemble. */
   private addLabel(text: string, at: THREE.Vector3, hand = false) {
@@ -323,9 +377,15 @@ export class FortScene {
     if (v.kind === 'hero') { this.base = { pos: V(12.5, 4.6, 11.5), target: V(0, 1.2, 0) }; this.shiftGoal = 0.1 }
     if (v.kind === 'overview') { this.base = { pos: V(3, 17, 14), target: V(0, 0, 0.5) }; this.shiftGoal = 0.2 }
     if (v.kind === 'sky') { this.base = { pos: V(0, 27, 7), target: V(0, 0, 0) }; this.shiftGoal = 0.16 }
+    if (v.kind === 'gate') {
+      const target = this.gatePos.clone().setY(0.8)
+      this.base = { pos: target.clone().add(this.gateDir.clone().multiplyScalar(6.5)).setY(2.2), target }
+      this.shiftGoal = 0.05
+    }
     if (v.kind === 'focus') {
-      const target = toV(v.x, v.y, 1)
-      const off = V(0, 5.8, 8.2).applyAxisAngle(V(0, 1, 0), -0.6 + v.ordre * 0.85)
+      const n = this.frames.get(v.ordre)?.n ?? 0
+      const target = toV(v.x, v.y, 1.3)
+      const off = V(0, 5.2, 8.2).multiplyScalar(1 + Math.max(0, n - 1) * 0.22).applyAxisAngle(V(0, 1, 0), -0.6 + v.ordre * 0.85)
       this.base = { pos: target.clone().add(off), target }
       this.shiftGoal = 0.22
     }
@@ -348,11 +408,15 @@ export class FortScene {
 
   private onMove = (e: PointerEvent) => {
     const h = this.pick(e)
-    this.renderer.domElement.style.cursor = h?.reachable ? 'pointer' : ''
+    const onFrame = this.ray.intersectObjects(this.frameMeshes.filter((f) => f.mesh.parent?.parent?.visible).map((f) => f.mesh)).length > 0
+    this.renderer.domElement.style.cursor = h?.reachable || onFrame ? 'pointer' : ''
   }
 
   private onUp = (e: PointerEvent) => {
     if (Math.hypot(e.clientX - this.down.x, e.clientY - this.down.y) > 6) return // c'était une rotation
+    const visibleFrames = this.frameMeshes.filter((f) => f.mesh.parent?.parent?.visible)
+    const fh = this.ray.intersectObjects(visibleFrames.map((f) => f.mesh))[0]
+    if (fh) { const f = visibleFrames.find((x) => x.mesh === fh.object); if (f) { this.opts.onPhoto?.(f.id); return } }
     const h = this.pick(e)
     if (h?.reachable) this.opts.onSelect?.(h.ordre)
   }
@@ -413,6 +477,12 @@ export class FortScene {
       this.threadProgress = Math.min(1, this.threadProgress + dt * 0.6)
       const idx = this.threadMesh.geometry.index!
       this.threadMesh.geometry.setDrawRange(0, Math.floor(idx.count * this.threadProgress / 6) * 6)
+    }
+    for (const [ordre, f] of this.frames) {
+      const want = this.view.kind === 'focus' && this.view.ordre === ordre ? 1 : 0.001
+      f.s += (want - f.s) * Math.min(1, dt * (want > 0.5 ? 2.5 : 6))
+      f.group.children.forEach((c) => c.scale.setScalar(f.s)); f.group.visible = f.s > 0.01
+      if (!this.opts.reducedMotion) f.group.children.forEach((c, i) => { c.position.y = 1.75 + Math.sin(t * 1.1 + i) * 0.05 })
     }
     const wantLabels = this.view.kind === 'overview' || this.view.kind === 'sky' ? 1 : 0
     for (const l of this.labels) { const m = l.material as THREE.SpriteMaterial; m.opacity += (wantLabels - m.opacity) * Math.min(1, dt * 4) }

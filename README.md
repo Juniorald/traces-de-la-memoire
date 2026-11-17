@@ -1,4 +1,4 @@
-# Les Traces de la Mémoire – prototype v0.6
+# Les Traces de la Mémoire – prototype v0.7
 
 Prototype visiteur de l’enquête pilote, construit avec la pile technique du dossier de conception :
 
@@ -8,6 +8,7 @@ Prototype visiteur de l’enquête pilote, construit avec la pile technique du d
 | Outillage | **Vite** |
 | Navigation | **Vue Router** (routes `/enquete/:id/etape/:ordre`, `/e/:etapeId` pour les QR codes) |
 | État | **Pinia**, progression et carnet enregistrés dans le navigateur (`localStorage`) |
+| Immersion | Scène 3D plein écran en permanence ; contenus dans un panneau repliable (à droite sur ordinateur) ; tirages d’archives exposés sur des chevalets 3D autour de chaque punaise, agrandissables ; entrée cinématique par la porte du Fort |
 | Expérience 3D | **Three.js** : tout le site se joue dans une scène 3D unique du Fort au crépuscule. La caméra se déplace à chaque navigation (accueil → vue d’ensemble → étape → fresque) et tourne avec le défilement ; punaises cliquables, fil rouge qui se déroule, rebonds à chaque action. Chargé à la demande, repli 2D automatique sans WebGL, mouvements coupés si « réduire les animations » est activé. |
 | Carte | **Leaflet** en mode `CRS.Simple` : plan interne du Fort, sans GPS |
 | API | **Node.js / Express** (routes publiques `GET /api/enquetes/:id`, `/api/etapes/:id`, `/api/lieux`) |
@@ -58,8 +59,13 @@ Mémorial national des femmes en résistance et en déportation : 4 bastions, b�
 séparée en cour des femmes et cour des hommes, casemates de la garnison et des internés, Kommandantur, poste de garde,
 miradors, route des camions et des cars. Les proportions sont indicatives et les emplacements des étapes restent à valider.
 
-Les scans fournis par le Mémorial (plan publié dans un ouvrage, photographies de Brassaï prises à la Libération)
-**ne sont pas intégrés au dépôt public** : leur diffusion en ligne nécessite l’autorisation des ayants droit.
+## Photographies d’archives
+
+Les tirages de `public/archives/` (série de Brassaï prise à la Libération, planches de photographies du Fort, plan
+schématique de 1944) proviennent du dossier partagé par le **Mémorial national des femmes en résistance et en déportation**,
+qui en a autorisé l’utilisation pour le projet Paris 8. Les légendes reprennent uniquement les annotations au dos des
+tirages ; les autres descriptions restent « à valider ». Conserver une trace écrite de l’autorisation et la mention de crédit
+demandée par le Mémorial.
 
 ## Photographies
 

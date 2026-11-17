@@ -4,7 +4,9 @@ import { useRoute, useRouter } from 'vue-router'
 import { useEnquete } from '../composables/useEnquete'
 import { useProgress } from '../stores/progress'
 import { stageOk, stageScene } from '../three/stage'
-import type { PinData, View } from '../three/fortScene'
+import { docUrl, viewer } from '../stores/ui'
+import type { Archive } from '../types'
+import type { FrameSet, PinData, View } from '../three/fortScene'
 
 // Décor 3D permanent du site : la caméra suit la navigation (accueil, plan, étape, fresque) et le défilement.
 const host = ref<HTMLDivElement>()
@@ -33,10 +35,15 @@ const view = computed<View>(() => {
   return { kind: 'hero' }
 })
 
-function onScroll() {
-  const max = document.documentElement.scrollHeight - innerHeight
-  stageScene.value?.setScroll(max > 0 ? scrollY / max : 0)
-}
+const allDocs = computed(() => (enquete.value?.etapes ?? []).flatMap((e) => [
+  ...e.indices.map((i) => i.archive).filter((a): a is Archive => !!a?.src),
+  ...(e.documents ?? []),
+]))
+const frameSets = (): FrameSet[] => (enquete.value?.etapes ?? []).filter((e) => e.lieu).map((e) => ({
+  ordre: e.ordre, x: e.lieu!.plan.x, y: e.lieu!.plan.y,
+  docs: [...e.indices.map((i) => i.archive).filter((a): a is Archive => !!a?.src), ...(e.documents ?? [])]
+    .map((d) => ({ id: d.id, url: docUrl(d.src!), titre: d.titre })),
+}))
 
 onMounted(async () => {
   const mod = await import('../three/fortScene')
@@ -45,17 +52,19 @@ onMounted(async () => {
     stageScene.value = new mod.FortScene(host.value, {
       reducedMotion: matchMedia('(prefers-reduced-motion: reduce)').matches,
       onSelect: (o) => router.push(`/enquete/1/etape/${o}`),
+      onPhoto: (id) => { viewer.value = allDocs.value.find((d) => d.id === id) ?? null },
     })
   } catch { stageOk.value = false; return }
   stageScene.value.setPins(pins(), current.value)
+  stageScene.value.setFrames(frameSets())
   stageScene.value.setView(view.value)
   ready.value = true
-  addEventListener('scroll', onScroll, { passive: true })
 })
 watch(view, (v) => stageScene.value?.setView(v), { deep: true })
-watch(() => [current.value, [...p.done], [...p.unlocked], enquete.value], () => stageScene.value?.setPins(pins(), current.value), { deep: true })
+watch(() => [current.value, [...p.done], [...p.unlocked]], () => stageScene.value?.setPins(pins(), current.value), { deep: true })
+watch(enquete, () => { stageScene.value?.setPins(pins(), current.value); stageScene.value?.setFrames(frameSets()); stageScene.value?.setView(view.value) })
 watch(() => route.fullPath, () => stageScene.value?.setScroll(0))
-onBeforeUnmount(() => { removeEventListener('scroll', onScroll); stageScene.value?.dispose(); stageScene.value = null })
+onBeforeUnmount(() => { stageScene.value?.dispose(); stageScene.value = null })
 </script>
 
 <template>
@@ -71,6 +80,6 @@ onBeforeUnmount(() => { removeEventListener('scroll', onScroll); stageScene.valu
 .canvas { position: absolute; inset: 0; }
 .canvas :deep(canvas) { display: block; width: 100% !important; height: 100% !important; touch-action: pan-y; }
 /* voile en bas d'écran pour que les fiches restent lisibles au-dessus du décor */
-.veil { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(transparent 38%, rgb(28 16 34 / .55) 78%, rgb(28 16 34 / .75)); }
+.veil { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(rgb(28 16 34 / .45), transparent 22%, transparent 70%, rgb(28 16 34 / .5)); }
 .loading { position: absolute; top: 30vh; left: 0; right: 0; text-align: center; margin: 0; color: #f2cfb4; font: 24px/1 var(--hand); }
 </style>

@@ -3,10 +3,10 @@ import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import PlanMap from '../components/PlanMap.vue'
 import ProgressRail from '../components/ProgressRail.vue'
-import SceneWindow from '../components/SceneWindow.vue'
 import { useEnquete } from '../composables/useEnquete'
 import { useProgress } from '../stores/progress'
 import { stageOk } from '../three/stage'
+import { setChapter } from '../stores/ui'
 
 const props = defineProps<{ id: number }>()
 const { enquete } = useEnquete(() => props.id)
@@ -16,16 +16,11 @@ const show2d = ref(false)
 const current = computed(() => enquete.value?.etapes.find((e) => !p.isDone(e.ordre))?.ordre)
 const allDone = computed(() => !!enquete.value && enquete.value.etapes.every((e) => p.isDone(e.ordre)))
 const open = (ordre: number) => router.push(`/enquete/${props.id}/etape/${ordre}`)
+setChapter('Dossier n° 01, le parcours', 'Le plan de l’enquête', stageOk.value ? 'Touchez une punaise sur le Fort' : '')
 </script>
 
 <template>
   <section v-if="enquete" class="stack">
-    <SceneWindow height="50vh" fallback="heroFort">
-      <p class="eyebrow">Dossier n° 01, le parcours</p>
-      <h1>Le plan de l’enquête</h1>
-      <p v-if="stageOk" class="hint">Touchez une punaise sur le Fort</p>
-    </SceneWindow>
-
     <div class="sheet rail-sheet">
       <ProgressRail :total="enquete.etapes.length" :is-done="p.isDone" :current="current" />
       <button class="toggle" :aria-expanded="show2d || !stageOk" @click="show2d = !show2d">

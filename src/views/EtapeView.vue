@@ -3,9 +3,10 @@ import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import ArchiveSlot from '../components/ArchiveSlot.vue'
 import CommonsPhoto from '../components/CommonsPhoto.vue'
-import IllustrationFrame from '../components/IllustrationFrame.vue'
-import SceneWindow from '../components/SceneWindow.vue'
+import DocStrip from '../components/DocStrip.vue'
 import { stage } from '../three/stage'
+import { setChapter } from '../stores/ui'
+import { watchEffect } from 'vue'
 import ProgressRail from '../components/ProgressRail.vue'
 import QuestionBlock from '../components/QuestionBlock.vue'
 import { useEnquete } from '../composables/useEnquete'
@@ -27,6 +28,8 @@ const note = computed({
   set: (v: string) => { if (etape.value) p.notes[etape.value.id] = v },
 })
 
+watchEffect(() => { if (etape.value) setChapter(`Étape ${props.ordre} sur ${total.value}, ${etape.value.lieu?.nom ?? ''}`, etape.value.titre, unlocked.value ? '' : 'Rendez-vous au point') })
+
 function unlock() { p.unlock(props.ordre); stage.ping(props.ordre) }
 function choose(o: string) { if (!etape.value) return; p.answer(etape.value.question.id, o); stage.ping(props.ordre) }
 
@@ -38,14 +41,8 @@ function next() {
 
 <template>
   <section v-if="etape" class="stack">
-    <SceneWindow height="44vh" :fallback="etape.illustration ?? 'heroFort'">
-      <p class="eyebrow">Étape {{ ordre }} sur {{ total }}, {{ etape.lieu?.nom }}</p>
-      <h1>{{ etape.titre }}</h1>
-    </SceneWindow>
-
     <div class="sheet rail"><ProgressRail :total="total" :is-done="p.isDone" :current="ordre" /></div>
 
-    <IllustrationFrame v-if="etape.illustration" :name="etape.illustration" />
 
     <!-- Étape pas encore accessible -->
     <div v-if="!reachable" class="sheet stack">
@@ -71,6 +68,12 @@ function next() {
           <ArchiveSlot v-if="i.archive" :archive="i.archive" :numero="etape.ordre" />
         </div>
       </article>
+
+      <section v-if="etape.documents?.length" class="stack">
+        <h2>Exposé sur le lieu</h2>
+        <p class="small muted">Ces tirages sont aussi exposés dans la maquette, autour de la punaise : touchez-les pour les agrandir.</p>
+        <DocStrip :docs="etape.documents" />
+      </section>
 
       <section v-if="etape.photos?.length" class="lieu sheet stack">
         <h2>Le lieu, en images</h2>
@@ -105,7 +108,7 @@ h1 { margin-top: 6px; }
 .lock { text-align: center; padding-top: 26px; }
 .lock .stamp { font-size: 15px; }
 .rdv { font: 400 20px/1.35 var(--display); margin: 14px 0 0; }
-.lieu h2 { font-size: 22px; }
+.lieu h2, h2 { font-size: 22px; }
 .carnet { background: #fffdf6; padding: 14px 12px 6px; border-radius: 3px; box-shadow: var(--shadow); }
 .carnet label { display: block; padding-left: 4px; margin-bottom: 6px; }
 .center { text-align: center; margin-top: -4px; }

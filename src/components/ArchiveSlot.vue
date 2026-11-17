@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { Archive } from '../types'
+import { docUrl, viewer } from '../stores/ui'
 
 const props = defineProps<{ archive: Archive; numero: number }>()
 const label = computed(() => ({ archive: 'Archive', temoignage: 'Témoignage', reconstitution: 'Reconstitution' }[props.archive.nature]))
 const verified = computed(() => props.archive.statut === 'publie')
+const stampText = computed(() => verified.value ? 'Vérifiée' : props.archive.src ? 'Légende à valider' : 'À authentifier')
 const missing = (v: string | null) => v ?? '— à renseigner'
 </script>
 
@@ -12,15 +14,20 @@ const missing = (v: string | null) => v ?? '— à renseigner'
   <figure class="doc">
     <div class="folder">
       <span class="tab">Pièce n° {{ String(numero).padStart(2, '0') }} · {{ label }}</span>
-      <div class="media" :class="archive.nature">
+      <button v-if="archive.src" class="media real" :aria-label="`Agrandir : ${archive.titre}`" @click="viewer = archive">
+        <img :src="docUrl(archive.src)" :alt="archive.legende ?? archive.titre" />
+      </button>
+      <div v-else class="media" :class="archive.nature">
         <span class="kind">{{ archive.type }}</span>
         <span class="title">{{ archive.titre }}</span>
         <span class="slot">emplacement réservé au document original</span>
       </div>
-      <span class="stamp" :class="{ ok: verified }">{{ verified ? 'Vérifiée' : 'À authentifier' }}</span>
+      <span class="stamp" :class="{ ok: verified }">{{ stampText }}</span>
       <span v-if="archive.nature === 'reconstitution'" class="stamp plum second">Reconstitution</span>
     </div>
+    <p v-if="archive.src" class="legend"><strong>{{ archive.titre }}.</strong> {{ archive.legende }}</p>
     <dl>
+      <dt v-if="archive.auteur">Auteur</dt><dd v-if="archive.auteur">{{ archive.auteur }}<template v-if="archive.date">, {{ archive.date }}</template></dd>
       <dt>Source</dt><dd>{{ missing(archive.source) }}</dd>
       <dt>Cote</dt><dd>{{ missing(archive.cote) }}</dd>
       <dt>Droits</dt><dd>{{ missing(archive.droits) }}</dd>
@@ -36,11 +43,14 @@ const missing = (v: string | null) => v ?? '— à renseigner'
   min-height: 160px; display: grid; place-content: center; gap: 6px; text-align: center; padding: 18px;
   background: var(--sheet); border: 1px solid #e3d6bd; box-shadow: 0 2px 6px rgb(60 40 20 / .18); transform: rotate(-1deg);
 }
+.media.real { padding: 8px; display: block; border: 0; cursor: zoom-in; width: 100%; }
+.media.real img { width: 100%; display: block; }
+.legend { margin: 12px 2px 0; font-size: 14px; }
 .kind { font: 11px/1 var(--type); letter-spacing: .1em; text-transform: uppercase; color: var(--plum); }
 .title { font: 600 17px/1.25 var(--display); }
 .slot { font: 18px/1 var(--hand); color: var(--mute); }
 .stamp { position: absolute; right: 18px; bottom: 18px; background: rgb(251 247 239 / .5); }
-.stamp.second { right: auto; left: 22px; transform: rotate(5deg); }
+.stamp.second { right: auto; bottom: auto; left: 22px; top: 22px; transform: rotate(5deg); }
 dl { display: grid; grid-template-columns: auto 1fr; gap: 3px 14px; margin: 12px 2px 0; font: 13px/1.45 var(--type); }
 dt { color: var(--mute); }
 dd { margin: 0; color: var(--ink); opacity: .7; }

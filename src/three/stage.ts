@@ -8,4 +8,7 @@ export const stageOk = ref(true)
 
 export const stage = {
   ping: (ordre: number) => stageScene.value?.ping(ordre),
+  scroll: (f: number) => stageScene.value?.setScroll(f),
+  /** Plan rapproché sur la porte du Fort (entrée dans l'enquête). */
+  gate: () => stageScene.value?.setView({ kind: 'gate' }),
 }

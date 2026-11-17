@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import IllustrationFrame from '../components/IllustrationFrame.vue'
-import SceneWindow from '../components/SceneWindow.vue'
+import { setChapter } from '../stores/ui'
 import { useEnquete } from '../composables/useEnquete'
 import { useProgress } from '../stores/progress'
 
@@ -11,16 +11,12 @@ const { enquete } = useEnquete(() => props.id)
 const p = useProgress()
 const router = useRouter()
 const complete = computed(() => !!enquete.value && enquete.value.etapes.every((e) => p.isDone(e.ordre)))
+setChapter('Fresque collective', 'Les parcours se rejoignent', 'Le fil rouge relie les cinq lieux')
 function restart() { p.reset(); router.push('/') }
 </script>
 
 <template>
   <section v-if="enquete" class="stack">
-    <SceneWindow height="52vh" fallback="liens">
-      <p class="eyebrow">Fresque collective</p>
-      <h1>Les parcours se rejoignent</h1>
-      <p class="hand sub">Le fil rouge relie maintenant les cinq lieux.</p>
-    </SceneWindow>
 
     <div v-if="!complete" class="sheet stack">
       <p>La fresque s’ouvre une fois les {{ enquete.etapes.length }} pièces classées.</p>

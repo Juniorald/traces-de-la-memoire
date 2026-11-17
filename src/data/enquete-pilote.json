@@ -29,16 +29,20 @@
         {
           "id": 1001,
           "ordre": 1,
-          "consigne": "Regardez qui est représenté et ce qui est écrit.",
+          "consigne": "Déchiffrez ce que les détenus ont écrit, et notez ce que vous pouvez lire avec certitude.",
           "archive": {
             "id": 501,
-            "titre": "Photo ou lettre d’archive",
-            "type": "image",
+            "titre": "Inscriptions de détenus",
+            "type": "photographie",
             "nature": "archive",
-            "source": null,
+            "source": "Mémorial national des femmes en résistance et en déportation",
             "cote": null,
-            "droits": null,
-            "statut": "a_valider"
+            "droits": "Diffusion autorisée par le Mémorial dans le cadre du projet Paris 8",
+            "statut": "a_valider",
+            "src": "archives/graffitis.jpg",
+            "auteur": "Brassaï",
+            "date": "1944",
+            "legende": "« Prison de Romainville » (annotation au dos du tirage). Inscriptions laissées par des détenus sur une poutre."
           }
         }
       ],
@@ -64,7 +68,23 @@
         ],
         "explication": "Une archive n’est exploitable que si l’on sait d’où elle vient (provenance, cote) et si l’on a le droit de la montrer. C’est la règle de traçabilité du dossier."
       },
-      "illustration": "indice"
+      "illustration": "indice",
+      "documents": [
+        {
+          "id": 511,
+          "titre": "L’entrée du Fort et un mirador",
+          "type": "photographie",
+          "nature": "archive",
+          "source": "Mémorial national des femmes en résistance et en déportation",
+          "cote": null,
+          "droits": "Diffusion autorisée par le Mémorial dans le cadre du projet Paris 8",
+          "statut": "a_valider",
+          "src": "archives/p1-entree.jpg",
+          "auteur": "Photographe à préciser",
+          "date": "1944",
+          "legende": "Bâtiment d’entrée et mirador de surveillance."
+        }
+      ]
     },
     {
       "id": 102,
@@ -121,7 +141,23 @@
         ],
         "explication": "Le témoignage apporte un regard irremplaçable, mais la mémoire se reconstruit avec le temps : on le confronte aux archives écrites."
       },
-      "illustration": "avant"
+      "illustration": "avant",
+      "documents": [
+        {
+          "id": 521,
+          "titre": "Clôtures de barbelés",
+          "type": "photographie",
+          "nature": "archive",
+          "source": "Mémorial national des femmes en résistance et en déportation",
+          "cote": null,
+          "droits": "Diffusion autorisée par le Mémorial dans le cadre du projet Paris 8",
+          "statut": "a_valider",
+          "src": "archives/p1-barbeles.jpg",
+          "auteur": "Photographe à préciser",
+          "date": "1944",
+          "legende": "Clôtures de fil barbelé devant les bâtiments du Fort."
+        }
+      ]
     },
     {
       "id": 103,
@@ -178,7 +214,23 @@
         ],
         "explication": "Dans la clandestinité, un document pouvait mettre des vies en danger. C’est pourquoi chaque trace conservée compte, et pourquoi il ne faut pas combler les vides par l’invention."
       },
-      "illustration": "engagement"
+      "illustration": "engagement",
+      "documents": [
+        {
+          "id": 531,
+          "titre": "Entrée d’une cellule à Romainville",
+          "type": "photographie",
+          "nature": "archive",
+          "source": "Mémorial national des femmes en résistance et en déportation",
+          "cote": "E144",
+          "droits": "Diffusion autorisée par le Mémorial dans le cadre du projet Paris 8",
+          "statut": "a_valider",
+          "src": "archives/porte-cellule-10.jpg",
+          "auteur": "Brassaï",
+          "date": "1944",
+          "legende": "« Entrée d’une cellule à Romainville » (annotation au dos du tirage)."
+        }
+      ]
     },
     {
       "id": 104,
@@ -200,16 +252,20 @@
         {
           "id": 1004,
           "ordre": 1,
-          "consigne": "Comparez le lieu actuel et sa représentation.",
+          "consigne": "Comparez ce plan avec la maquette : retrouvez la cour des femmes et les casemates.",
           "archive": {
             "id": 504,
-            "titre": "Plan, photo du lieu ou reconstitution",
-            "type": "image",
+            "titre": "Plan schématique du Fort, août 1944",
+            "type": "plan",
             "nature": "reconstitution",
-            "source": null,
+            "source": "Mémorial national des femmes en résistance et en déportation",
             "cote": null,
-            "droits": null,
-            "statut": "a_valider"
+            "droits": "Diffusion autorisée par le Mémorial dans le cadre du projet Paris 8",
+            "statut": "a_valider",
+            "src": "archives/plan-1944.jpg",
+            "auteur": "Plan publié (ouvrage transmis par le Mémorial)",
+            "date": "1944 (plan dessiné ultérieurement)",
+            "legende": "Plan schématique publié avec une photographie aérienne prise en août 1944, avant la Libération : bâtiment des détenus, cour grillagée séparée en cour des femmes et cour des hommes, casemates, Kommandantur."
           }
         }
       ],
@@ -248,6 +304,64 @@
           "legende": "Panorama du Fort côté nord-est, carte postale ancienne du début du XXe siècle, avant la guerre.",
           "nature": "carte_postale",
           "credit": "Wikimedia Commons – licence libre, auteur et licence exacte à vérifier sur la page du fichier"
+        }
+      ],
+      "documents": [
+        {
+          "id": 541,
+          "titre": "Intérieur d’une casemate",
+          "type": "photographie",
+          "nature": "archive",
+          "source": "Mémorial national des femmes en résistance et en déportation",
+          "cote": null,
+          "droits": "Diffusion autorisée par le Mémorial dans le cadre du projet Paris 8",
+          "statut": "a_valider",
+          "src": "archives/casemate-interieur.jpg",
+          "auteur": "Brassaï",
+          "date": "1944",
+          "legende": "Intérieur voûté avec des bancs (tirage annoté « Romainville »)."
+        },
+        {
+          "id": 542,
+          "titre": "Grille d’une prison de Romainville",
+          "type": "photographie",
+          "nature": "archive",
+          "source": "Mémorial national des femmes en résistance et en déportation",
+          "cote": "E142",
+          "droits": "Diffusion autorisée par le Mémorial dans le cadre du projet Paris 8",
+          "statut": "a_valider",
+          "src": "archives/grille-20.jpg",
+          "auteur": "Brassaï",
+          "date": "1944",
+          "legende": "« Grille d’une prison de Romainville » (annotation au dos du tirage)."
+        },
+        {
+          "id": 543,
+          "titre": "Alignement de casemates",
+          "type": "photographie",
+          "nature": "archive",
+          "source": "Mémorial national des femmes en résistance et en déportation",
+          "cote": null,
+          "droits": "Diffusion autorisée par le Mémorial dans le cadre du projet Paris 8",
+          "statut": "a_valider",
+          "src": "archives/p1-casemates.jpg",
+          "auteur": "Photographe à préciser",
+          "date": "1944",
+          "legende": "Les casemates voûtées adossées au rempart."
+        },
+        {
+          "id": 544,
+          "titre": "Façade de la casemate n° 20",
+          "type": "photographie",
+          "nature": "archive",
+          "source": "Mémorial national des femmes en résistance et en déportation",
+          "cote": null,
+          "droits": "Diffusion autorisée par le Mémorial dans le cadre du projet Paris 8",
+          "statut": "a_valider",
+          "src": "archives/p1-facade.jpg",
+          "auteur": "Photographe à préciser",
+          "date": "1944",
+          "legende": "Façade d’une casemate portant le numéro 20."
         }
       ]
     },
@@ -313,6 +427,22 @@
           "legende": "Plaque à la mémoire des résistantes parties de Romainville pour Auschwitz (convoi des 31000).",
           "nature": "plaque",
           "credit": "Wikimedia Commons – licence libre, auteur et licence exacte à vérifier sur la page du fichier"
+        }
+      ],
+      "documents": [
+        {
+          "id": 551,
+          "titre": "Intérieur d’un bâtiment du Fort",
+          "type": "photographie",
+          "nature": "archive",
+          "source": "Mémorial national des femmes en résistance et en déportation",
+          "cote": null,
+          "droits": "Diffusion autorisée par le Mémorial dans le cadre du projet Paris 8",
+          "statut": "a_valider",
+          "src": "archives/p2-couloir.jpg",
+          "auteur": "Photographe à préciser",
+          "date": "1944",
+          "legende": "Local intérieur, fenêtre grillagée."
         }
       ]
     }

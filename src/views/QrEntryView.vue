@@ -20,7 +20,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="sheet" style="margin-top: 40vh">
+  <div class="sheet">
     <p v-if="notFound">Ce QR code ne correspond à aucune étape publiée.</p>
     <p v-else class="eyebrow">Lecture du QR code…</p>
   </div>
