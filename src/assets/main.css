@@ -1,0 +1,134 @@
+/* Direction artistique : « dossier d'enquête »
+   papier, tampons, fiches, carnet manuscrit et fil rouge. */
+@font-face { font-family: 'Fraunces'; font-weight: 100 900; font-display: swap;
+  src: url('../../node_modules/@fontsource-variable/fraunces/files/fraunces-latin-wght-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Inter'; font-weight: 100 900; font-display: swap;
+  src: url('../../node_modules/@fontsource-variable/inter/files/inter-latin-wght-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Special Elite'; font-weight: 400; font-display: swap;
+  src: url('../../node_modules/@fontsource/special-elite/files/special-elite-latin-400-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Caveat'; font-weight: 400 700; font-display: swap;
+  src: url('../../node_modules/@fontsource/caveat/files/caveat-latin-400-normal.woff2') format('woff2'); }
+
+:root {
+  --paper: #efe6d6;
+  --paper-2: #e6d9c3;
+  --sheet: #fbf7ef;
+  --ink: #2b1b30;
+  --mute: #6f6058;
+  --line: #d9c9ae;
+  --plum: #7a2860;
+  --red: #c8232c;
+  --ok: #2f6b4f;
+  --ok-bg: #e2eedf;
+  --warn: #9a3412;
+  --radius: 6px;
+  --shadow: 0 1px 1px rgb(60 40 20 / .08), 0 6px 18px -6px rgb(60 40 20 / .25);
+  --display: 'Fraunces', Georgia, serif;
+  --sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --type: 'Special Elite', 'Courier New', monospace;
+  --hand: 'Caveat', 'Bradley Hand', cursive;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  color: var(--ink);
+  font: 16px/1.55 var(--sans);
+  -webkit-font-smoothing: antialiased;
+  background-color: var(--paper);
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .25 0 0 0 0 .15 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E"),
+    radial-gradient(ellipse at top, #f6efe2, transparent 60%);
+  min-height: 100vh;
+  padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
+}
+h1, h2, h3 { font-family: var(--display); font-weight: 650; line-height: 1.08; margin: 0; letter-spacing: -.015em; font-variation-settings: 'SOFT' 50, 'WONK' 1; }
+h1 { font-size: clamp(30px, 8vw, 38px); }
+a { color: var(--plum); }
+.wrap { max-width: 480px; margin: 0 auto; padding: 18px 18px 56px; }
+.stack > * + * { margin-top: 16px; }
+
+/* Typo d'archive */
+.eyebrow { font: 13px/1.3 var(--type); letter-spacing: .04em; color: var(--mute); text-transform: uppercase; }
+.hand { font-family: var(--hand); font-size: 22px; line-height: 1.15; color: var(--plum); }
+.muted { color: var(--mute); }
+.small { font-size: 13.5px; }
+
+/* Feuilles de papier */
+.sheet {
+  position: relative;
+  background: var(--sheet);
+  border-radius: var(--radius);
+  padding: 20px 18px;
+  box-shadow: var(--shadow);
+}
+.sheet.tilt-l { transform: rotate(-.6deg); }
+.sheet.tilt-r { transform: rotate(.5deg); }
+.tape::before {
+  content: ''; position: absolute; top: -10px; left: 50%; width: 92px; height: 22px;
+  transform: translateX(-50%) rotate(-2deg);
+  background: rgb(232 214 160 / .75); box-shadow: 0 1px 2px rgb(0 0 0 / .08);
+  clip-path: polygon(3% 0, 97% 4%, 100% 50%, 96% 100%, 2% 96%, 0 50%);
+}
+
+/* Tampons */
+.stamp {
+  display: inline-block; font: 13px/1 var(--type); letter-spacing: .08em; text-transform: uppercase;
+  color: var(--red); border: 2px solid currentColor; border-radius: 4px; padding: 5px 9px;
+  transform: rotate(-4deg); opacity: .88; mix-blend-mode: multiply;
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='60'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.9' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -2.2 1.6'/%3E%3C/filter%3E%3Crect width='120' height='60' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.stamp.plum { color: var(--plum); }
+.stamp.ok { color: var(--ok); }
+
+/* Boutons */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  width: 100%; padding: 15px 18px; border-radius: 4px; border: 0;
+  background: var(--ink); color: #fbf7ef;
+  font: 600 16px/1.2 var(--sans); letter-spacing: .01em; cursor: pointer; text-decoration: none;
+  box-shadow: 0 3px 0 #120a14; transition: transform .12s ease, box-shadow .12s ease;
+}
+.btn:hover { background: #3a2640; }
+.btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #120a14; }
+.btn.red { background: var(--red); box-shadow: 0 3px 0 #8e141b; }
+.btn.ghost { background: transparent; color: var(--ink); border: 1.5px dashed var(--ink); box-shadow: none; }
+.btn:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+:focus-visible { outline: 3px solid var(--red); outline-offset: 3px; }
+
+/* Illustration encadrée */
+.illus { position: relative; border-radius: 4px; overflow: hidden; box-shadow: var(--shadow); background: var(--paper-2); }
+.illus svg { display: block; width: 100%; height: auto; aspect-ratio: 400 / 250; }
+.illus figcaption { position: absolute; right: 8px; bottom: 8px; font: 11px/1 var(--type); background: rgb(251 247 239 / .88); color: var(--mute); padding: 4px 7px; border-radius: 3px; }
+.photo { background: var(--sheet); padding: 10px 10px 34px; box-shadow: var(--shadow); position: relative; }
+.photo > figcaption { position: absolute; left: 12px; right: 12px; bottom: 9px; font: 20px/1 var(--hand); color: var(--ink); text-align: center; }
+
+textarea {
+  width: 100%; min-height: 120px; resize: vertical; border: 0; padding: 4px 6px 4px 34px;
+  font: 24px/30px var(--hand); color: #24306b; background-color: transparent;
+  background-image: linear-gradient(90deg, transparent 26px, rgb(200 35 44 / .35) 26px, rgb(200 35 44 / .35) 27px, transparent 27px),
+    repeating-linear-gradient(transparent 0 29px, #b9c6e0 29px 30px);
+  background-attachment: local;
+}
+textarea:focus { outline: none; }
+
+.fade-enter-active, .fade-leave-active { transition: opacity .25s ease, transform .25s ease; }
+.fade-enter-from { opacity: 0; transform: translateY(8px) rotate(.3deg); }
+.fade-leave-to { opacity: 0; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+/* Leaflet : plan sur papier, punaises et fil rouge */
+.leaflet-container { background: #e8dcc4; font-family: var(--sans); }
+.leaflet-bar a { background: var(--sheet); color: var(--ink); }
+.pin-marker { position: relative; width: 38px; height: 46px; }
+.pin-marker .head {
+  position: absolute; left: 4px; top: 0; width: 30px; height: 30px; border-radius: 50%;
+  display: grid; place-items: center; color: #fff; font: 700 14px/1 var(--sans);
+  background: radial-gradient(circle at 35% 30%, #ff6b6b, var(--red) 55%, #8e141b);
+  box-shadow: 0 3px 6px rgb(0 0 0 / .35);
+}
+.pin-marker .needle { position: absolute; left: 18px; top: 28px; width: 2px; height: 14px; background: linear-gradient(#999, #555); }
+.pin-marker.locked .head { background: radial-gradient(circle at 35% 30%, #b8a9b9, #7b6a7e 60%, #4d3f50); }
+.pin-marker.done .head { background: radial-gradient(circle at 35% 30%, #c76aa6, var(--plum) 60%, #4b1238); }
+.pin-marker.current .head { animation: bob 1.6s ease-in-out infinite; }
+@keyframes bob { 50% { transform: translateY(-4px); } }

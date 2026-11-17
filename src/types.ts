@@ -1,0 +1,51 @@
+// Types alignés sur le modèle de classes du dossier (v1.1).
+export type StatutPublication = 'brouillon' | 'a_valider' | 'publie' | 'retire'
+export type NatureDocument = 'archive' | 'temoignage' | 'reconstitution'
+
+export interface Archive {
+  id: number
+  titre: string
+  type: string
+  nature: NatureDocument
+  source: string | null
+  cote: string | null
+  droits: string | null
+  statut: StatutPublication
+}
+
+export interface Lieu {
+  id: number
+  nom: string
+  description: string
+  /** Coordonnées sur le plan interne (Leaflet CRS.Simple), pas de GPS. */
+  plan: { x: number; y: number }
+  accessible: boolean
+  site: string
+}
+
+export interface Indice { id: number; ordre: number; consigne: string; archive: Archive | null }
+
+export interface OptionReponse { id: string; texte: string; correcte: boolean }
+
+export interface Question { id: number; libelle: string; options: OptionReponse[]; explication: string }
+
+export interface Etape {
+  id: number
+  ordre: number
+  titre: string
+  consigne: string
+  lieu: Lieu | null
+  indices: Indice[]
+  question: Question
+  /** Illustration d'ambiance (création graphique, jamais présentée comme une archive). */
+  illustration?: string
+}
+
+export interface Enquete {
+  id: number
+  titre: string
+  questionCentrale: string
+  statut: StatutPublication
+  resistante: { id: number; nom: string; statutPublication: StatutPublication }
+  etapes: Etape[]
+}

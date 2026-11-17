@@ -1,0 +1,298 @@
+{
+  "id": 1,
+  "titre": "Sur les traces d’une résistante",
+  "questionCentrale": "Comment reconstituer, à partir de traces vérifiables, le parcours d’une femme passée par le Fort de Romainville ?",
+  "statut": "publie",
+  "resistante": {
+    "id": 1,
+    "nom": "Résistante à confirmer par l’équipe historique",
+    "statutPublication": "brouillon"
+  },
+  "etapes": [
+    {
+      "id": 101,
+      "ordre": 1,
+      "titre": "L’indice",
+      "consigne": "Observez la première trace. Avant de l’interpréter, demandez-vous d’où elle vient.",
+      "lieu": {
+        "id": 11,
+        "nom": "Départ du parcours",
+        "description": "Point d’accueil du parcours (emplacement à valider).",
+        "plan": {
+          "x": 150,
+          "y": 470
+        },
+        "accessible": true,
+        "site": "Fort de Romainville"
+      },
+      "indices": [
+        {
+          "id": 1001,
+          "ordre": 1,
+          "consigne": "Regardez qui est représenté et ce qui est écrit.",
+          "archive": {
+            "id": 501,
+            "titre": "Photo ou lettre d’archive",
+            "type": "image",
+            "nature": "archive",
+            "source": null,
+            "cote": null,
+            "droits": null,
+            "statut": "a_valider"
+          }
+        }
+      ],
+      "question": {
+        "id": 9001,
+        "libelle": "Avant d’interpréter une archive, que faut-il vérifier en premier ?",
+        "options": [
+          {
+            "id": "a",
+            "texte": "Sa provenance, sa cote et ses droits",
+            "correcte": true
+          },
+          {
+            "id": "b",
+            "texte": "Qu’elle soit esthétique",
+            "correcte": false
+          },
+          {
+            "id": "c",
+            "texte": "Seulement sa date",
+            "correcte": false
+          }
+        ],
+        "explication": "Une archive n’est exploitable que si l’on sait d’où elle vient (provenance, cote) et si l’on a le droit de la montrer. C’est la règle de traçabilité du dossier."
+      },
+      "illustration": "indice"
+    },
+    {
+      "id": 102,
+      "ordre": 2,
+      "titre": "Avant l’arrestation",
+      "consigne": "Découvrez son environnement avant l’arrestation à travers un témoignage.",
+      "lieu": {
+        "id": 12,
+        "nom": "Point d’intérêt 1",
+        "description": "Emplacement à valider avec le Fort.",
+        "plan": {
+          "x": 300,
+          "y": 160
+        },
+        "accessible": true,
+        "site": "Fort de Romainville"
+      },
+      "indices": [
+        {
+          "id": 1002,
+          "ordre": 1,
+          "consigne": "Lisez ou écoutez le témoignage.",
+          "archive": {
+            "id": 502,
+            "titre": "Portrait ou témoignage",
+            "type": "audio/texte",
+            "nature": "temoignage",
+            "source": null,
+            "cote": null,
+            "droits": null,
+            "statut": "a_valider"
+          }
+        }
+      ],
+      "question": {
+        "id": 9002,
+        "libelle": "Un témoignage recueilli après les faits est…",
+        "options": [
+          {
+            "id": "a",
+            "texte": "Une preuve indiscutable",
+            "correcte": false
+          },
+          {
+            "id": "b",
+            "texte": "Une source précieuse, à croiser avec d’autres",
+            "correcte": true
+          },
+          {
+            "id": "c",
+            "texte": "Inutilisable",
+            "correcte": false
+          }
+        ],
+        "explication": "Le témoignage apporte un regard irremplaçable, mais la mémoire se reconstruit avec le temps : on le confronte aux archives écrites."
+      },
+      "illustration": "avant"
+    },
+    {
+      "id": 103,
+      "ordre": 3,
+      "titre": "L’engagement",
+      "consigne": "Que dit ce document de son rôle dans la Résistance ?",
+      "lieu": {
+        "id": 13,
+        "nom": "Point d’intérêt 2",
+        "description": "Emplacement à valider avec le Fort.",
+        "plan": {
+          "x": 640,
+          "y": 130
+        },
+        "accessible": true,
+        "site": "Fort de Romainville"
+      },
+      "indices": [
+        {
+          "id": 1003,
+          "ordre": 1,
+          "consigne": "Repérez les informations sur ses activités.",
+          "archive": {
+            "id": 503,
+            "titre": "Document d’archive",
+            "type": "document",
+            "nature": "archive",
+            "source": null,
+            "cote": null,
+            "droits": null,
+            "statut": "a_valider"
+          }
+        }
+      ],
+      "question": {
+        "id": 9003,
+        "libelle": "Pourquoi les traces écrites de la Résistance sont-elles souvent rares ?",
+        "options": [
+          {
+            "id": "a",
+            "texte": "La clandestinité poussait à en laisser le moins possible",
+            "correcte": true
+          },
+          {
+            "id": "b",
+            "texte": "Les résistantes n’écrivaient jamais",
+            "correcte": false
+          },
+          {
+            "id": "c",
+            "texte": "Tout a été conservé, elles ne sont pas rares",
+            "correcte": false
+          }
+        ],
+        "explication": "Dans la clandestinité, un document pouvait mettre des vies en danger. C’est pourquoi chaque trace conservée compte, et pourquoi il ne faut pas combler les vides par l’invention."
+      },
+      "illustration": "engagement"
+    },
+    {
+      "id": 104,
+      "ordre": 4,
+      "titre": "Le Fort",
+      "consigne": "Que reste-t-il de ce lieu aujourd’hui ?",
+      "lieu": {
+        "id": 14,
+        "nom": "Point lié à l’internement",
+        "description": "Point physique uniquement après validation du lieu.",
+        "plan": {
+          "x": 850,
+          "y": 320
+        },
+        "accessible": true,
+        "site": "Fort de Romainville"
+      },
+      "indices": [
+        {
+          "id": 1004,
+          "ordre": 1,
+          "consigne": "Comparez le lieu actuel et sa représentation.",
+          "archive": {
+            "id": 504,
+            "titre": "Plan, photo du lieu ou reconstitution",
+            "type": "image",
+            "nature": "reconstitution",
+            "source": null,
+            "cote": null,
+            "droits": null,
+            "statut": "a_valider"
+          }
+        }
+      ],
+      "question": {
+        "id": 9004,
+        "libelle": "Ce visuel est signalé comme « reconstitution ». Qu’est-ce que cela signifie ?",
+        "options": [
+          {
+            "id": "a",
+            "texte": "C’est une photo d’époque",
+            "correcte": false
+          },
+          {
+            "id": "b",
+            "texte": "C’est une représentation construite à partir de sources",
+            "correcte": true
+          },
+          {
+            "id": "c",
+            "texte": "C’est une invention",
+            "correcte": false
+          }
+        ],
+        "explication": "Une reconstitution aide à se représenter un lieu, mais ce n’est pas un document d’époque : le dispositif la signale toujours comme telle."
+      },
+      "illustration": "fort"
+    },
+    {
+      "id": 105,
+      "ordre": 5,
+      "titre": "Départ et liens",
+      "consigne": "Quelles autres femmes croisent son parcours ?",
+      "lieu": {
+        "id": 15,
+        "nom": "Point final",
+        "description": "Emplacement à valider avec le Fort.",
+        "plan": {
+          "x": 560,
+          "y": 500
+        },
+        "accessible": true,
+        "site": "Fort de Romainville"
+      },
+      "indices": [
+        {
+          "id": 1005,
+          "ordre": 1,
+          "consigne": "Repérez les noms et les liens mentionnés.",
+          "archive": {
+            "id": 505,
+            "titre": "Document sur la déportation et les liens avec d’autres femmes",
+            "type": "document",
+            "nature": "archive",
+            "source": null,
+            "cote": null,
+            "droits": null,
+            "statut": "a_valider"
+          }
+        }
+      ],
+      "question": {
+        "id": 9005,
+        "libelle": "Quand peut-on relier deux parcours dans la fresque ?",
+        "options": [
+          {
+            "id": "a",
+            "texte": "Quand cela paraît vraisemblable",
+            "correcte": false
+          },
+          {
+            "id": "b",
+            "texte": "Quand une source atteste le lien",
+            "correcte": true
+          },
+          {
+            "id": "c",
+            "texte": "Toujours, pour enrichir la fresque",
+            "correcte": false
+          }
+        ],
+        "explication": "Chaque lien de la fresque repose sur une archive justificative (RelationHistorique → Archive). Pas de lien « supposé » non signalé."
+      },
+      "illustration": "liens"
+    }
+  ]
+}
