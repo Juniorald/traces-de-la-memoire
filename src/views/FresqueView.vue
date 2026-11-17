@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import IllustrationFrame from '../components/IllustrationFrame.vue'
+import SceneWindow from '../components/SceneWindow.vue'
 import { useEnquete } from '../composables/useEnquete'
 import { useProgress } from '../stores/progress'
 
@@ -15,10 +16,11 @@ function restart() { p.reset(); router.push('/') }
 
 <template>
   <section v-if="enquete" class="stack">
-    <div>
+    <SceneWindow height="52vh" fallback="liens">
       <p class="eyebrow">Fresque collective</p>
       <h1>Les parcours se rejoignent</h1>
-    </div>
+      <p class="hand sub">Le fil rouge relie maintenant les cinq lieux.</p>
+    </SceneWindow>
 
     <div v-if="!complete" class="sheet stack">
       <p>La fresque s’ouvre une fois les {{ enquete.etapes.length }} pièces classées.</p>
@@ -28,9 +30,9 @@ function restart() { p.reset(); router.push('/') }
     <template v-else>
       <div class="board">
         <IllustrationFrame name="liens" caption="Illustration – liens à documenter" />
-        <span class="stamp ok solved">Enquête classée</span>
+        <span class="stamp ok solved in">Enquête classée</span>
       </div>
-      <p class="small muted after">Votre enquête rejoint d’autres parcours de femmes passées par le Fort. Chaque fil sera tendu uniquement à partir d’une source qui l’atteste (relation historique → archive).</p>
+      <p class="small muted after sheet">Votre enquête rejoint d’autres parcours de femmes passées par le Fort. Chaque fil sera tendu uniquement à partir d’une source qui l’atteste (relation historique → archive).</p>
 
       <div class="carnet sheet">
         <p class="eyebrow">Votre carnet d’enquête</p>
@@ -51,6 +53,7 @@ function restart() { p.reset(); router.push('/') }
 .board { position: relative; background: #c9a777; padding: 10px; border-radius: 4px; box-shadow: var(--shadow); }
 .solved { position: absolute; left: 14px; bottom: -14px; font-size: 16px; background: rgb(251 247 239 / .7); transform: rotate(-5deg); background: var(--sheet); }
 .after { margin-top: 30px; }
+.sub { color: #f2cfb4; margin: 8px 0 0; }
 .recap { list-style: none; padding: 0; margin: 10px 0 0; display: grid; gap: 10px; }
 .recap li { display: grid; gap: 2px; padding-bottom: 10px; border-bottom: 1px dashed var(--line); }
 .recap li:last-child { border: 0; padding-bottom: 0; }

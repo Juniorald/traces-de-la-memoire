@@ -1,4 +1,4 @@
-# Les Traces de la Mémoire – prototype v0.4
+# Les Traces de la Mémoire – prototype v0.5
 
 Prototype visiteur de l’enquête pilote, construit avec la pile technique du dossier de conception :
 
@@ -8,7 +8,7 @@ Prototype visiteur de l’enquête pilote, construit avec la pile technique du d
 | Outillage | **Vite** |
 | Navigation | **Vue Router** (routes `/enquete/:id/etape/:ordre`, `/e/:etapeId` pour les QR codes) |
 | État | **Pinia**, progression et carnet enregistrés dans le navigateur (`localStorage`) |
-| Maquette 3D | **Three.js** : Fort schématique au crépuscule, punaises cliquables, fil rouge animé (chargé à la demande, repli 2D automatique) |
+| Expérience 3D | **Three.js** : tout le site se joue dans une scène 3D unique du Fort au crépuscule. La caméra se déplace à chaque navigation (accueil → vue d’ensemble → étape → fresque) et tourne avec le défilement ; punaises cliquables, fil rouge qui se déroule, rebonds à chaque action. Chargé à la demande, repli 2D automatique sans WebGL, mouvements coupés si « réduire les animations » est activé. |
 | Carte | **Leaflet** en mode `CRS.Simple` : plan interne du Fort, sans GPS |
 | API | **Node.js / Express** (routes publiques `GET /api/enquetes/:id`, `/api/etapes/:id`, `/api/lieux`) |
 

@@ -4,6 +4,8 @@ import { useRouter } from 'vue-router'
 import ArchiveSlot from '../components/ArchiveSlot.vue'
 import CommonsPhoto from '../components/CommonsPhoto.vue'
 import IllustrationFrame from '../components/IllustrationFrame.vue'
+import SceneWindow from '../components/SceneWindow.vue'
+import { stage } from '../three/stage'
 import ProgressRail from '../components/ProgressRail.vue'
 import QuestionBlock from '../components/QuestionBlock.vue'
 import { useEnquete } from '../composables/useEnquete'
@@ -25,6 +27,9 @@ const note = computed({
   set: (v: string) => { if (etape.value) p.notes[etape.value.id] = v },
 })
 
+function unlock() { p.unlock(props.ordre); stage.ping(props.ordre) }
+function choose(o: string) { if (!etape.value) return; p.answer(etape.value.question.id, o); stage.ping(props.ordre) }
+
 function next() {
   p.complete(props.ordre)
   router.push(isLast.value ? `/enquete/${props.id}/fresque` : `/enquete/${props.id}/etape/${props.ordre + 1}`)
@@ -33,12 +38,12 @@ function next() {
 
 <template>
   <section v-if="etape" class="stack">
-    <ProgressRail :total="total" :is-done="p.isDone" :current="ordre" />
-
-    <header class="head">
+    <SceneWindow height="44vh" :fallback="etape.illustration ?? 'heroFort'">
       <p class="eyebrow">Étape {{ ordre }} sur {{ total }}, {{ etape.lieu?.nom }}</p>
       <h1>{{ etape.titre }}</h1>
-    </header>
+    </SceneWindow>
+
+    <div class="sheet rail"><ProgressRail :total="total" :is-done="p.isDone" :current="ordre" /></div>
 
     <IllustrationFrame v-if="etape.illustration" :name="etape.illustration" />
 
@@ -50,10 +55,10 @@ function next() {
 
     <!-- Arrivée sur le lieu : QR code ou mode manuel (repli sans GPS) -->
     <div v-else-if="!unlocked" class="sheet tape stack lock">
-      <span class="stamp">Pièce scellée</span>
+      <span class="stamp in">Pièce scellée</span>
       <p class="rdv">Rendez-vous au point<br /><strong>« {{ etape.lieu?.nom }} »</strong></p>
       <p class="small muted">{{ etape.lieu?.description }} Scannez le QR code posé sur place ou confirmez votre arrivée.</p>
-      <button class="btn red" @click="p.unlock(ordre)">Je suis arrivé·e au point</button>
+      <button class="btn red" @click="unlock">Je suis arrivé·e au point</button>
       <RouterLink class="btn ghost" :to="`/e/${etape.id}`">Simuler le scan du QR code</RouterLink>
     </div>
 
@@ -67,13 +72,13 @@ function next() {
         </div>
       </article>
 
-      <section v-if="etape.photos?.length" class="lieu stack">
+      <section v-if="etape.photos?.length" class="lieu sheet stack">
         <h2>Le lieu, en images</h2>
         <CommonsPhoto v-for="ph in etape.photos" :key="ph.fichier" :photo="ph" />
       </section>
 
       <article class="sheet">
-        <QuestionBlock :question="etape.question" :chosen="chosen" @choose="(o) => p.answer(etape!.question.id, o)" />
+        <QuestionBlock :question="etape.question" :chosen="chosen" @choose="choose" />
       </article>
 
       <article class="carnet">
@@ -84,7 +89,7 @@ function next() {
       <button class="btn red" :disabled="!chosen" @click="next">
         {{ isLast ? 'Classer la pièce et voir la fresque' : 'Classer la pièce et continuer' }}
       </button>
-      <p v-if="!chosen" class="small muted center">Choisissez une réponse pour continuer : chaque réponse est expliquée.</p>
+      <p v-if="!chosen" class="small center light-note">Choisissez une réponse pour continuer : chaque réponse est expliquée.</p>
     </template>
 
     <RouterLink class="btn ghost" :to="`/enquete/${id}`">Retour au plan</RouterLink>
@@ -92,7 +97,9 @@ function next() {
 </template>
 
 <style scoped>
-.head h1 { margin-top: 6px; }
+h1 { margin-top: 6px; }
+.rail { padding: 14px 16px; }
+.light-note { color: #f2cfb4; }
 .consigne { font: 500 20px/1.4 var(--display); margin: 6px 0 4px; }
 .indice { margin: 14px 0 0; }
 .lock { text-align: center; padding-top: 26px; }

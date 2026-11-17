@@ -5,7 +5,12 @@ import * as THREE from 'three'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 
 export interface PinData { ordre: number; titre: string; x: number; y: number; state: 'done' | 'current' | 'locked'; reachable: boolean }
-export interface SceneOptions { mode: 'hero' | 'map'; onSelect?: (ordre: number) => void; reducedMotion?: boolean }
+export type View =
+  | { kind: 'hero' }
+  | { kind: 'overview' }
+  | { kind: 'focus'; x: number; y: number; ordre: number }
+  | { kind: 'sky' }
+export interface SceneOptions { onSelect?: (ordre: number) => void; reducedMotion?: boolean }
 
 const S = 50 // 50 px de plan = 1 unité 3D
 const toV = (x: number, y: number, h = 0) => new THREE.Vector3((x - 500) / S, h, (y - 300) / S)
@@ -69,12 +74,23 @@ export class FortScene {
   private clock = new THREE.Clock()
   private raf = 0
   private visible = true
-  private camGoal: { pos: THREE.Vector3; target: THREE.Vector3 } | null = null
+  private base = { pos: new THREE.Vector3(19, 5.2, 17), target: new THREE.Vector3(0, 1.6, 0) }
+  private view: View = { kind: 'hero' }
+  private shift = 0.12
+  private shiftGoal = 0.12
+  private scrollAz = 0
+  private userOverride = false
+  private arrived = false
+  private pingT = new Map<number, number>()
+  private lastThread = 0
+  /** Sur un écran en portrait, on recule la caméra et on élargit l'angle pour garder tout le Fort visible. */
+  private distScale = 1
   private ro: ResizeObserver
   private io: IntersectionObserver
   private down = { x: 0, y: 0 }
 
   constructor(private host: HTMLElement, private opts: SceneOptions) {
+    this.view = { kind: "hero" }
     this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false })
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
     this.renderer.shadowMap.enabled = true
@@ -84,19 +100,16 @@ export class FortScene {
     host.appendChild(this.renderer.domElement)
 
     this.camera = new THREE.PerspectiveCamera(38, 1, 0.1, 200)
-    if (opts.mode === 'hero') this.camera.position.set(19, 5.2, 17)
-    else this.camera.position.set(0, 17, 17)
+    this.camera.position.set(30, 14, 30) // arrivée en survol
 
     this.controls = new OrbitControls(this.camera, this.renderer.domElement)
     this.controls.enableDamping = true
     this.controls.enablePan = false
-    this.controls.minDistance = 7
-    this.controls.maxDistance = 32
-    this.controls.maxPolarAngle = 1.32
-    this.controls.target.set(0, opts.mode === 'hero' ? 1.6 : 0, 0)
-    this.controls.autoRotate = opts.mode === 'hero' && !opts.reducedMotion
+    this.controls.enableZoom = false // la molette et le geste vertical servent à faire défiler le site
+    this.controls.maxPolarAngle = 1.36
+    this.controls.target.set(0, 1.6, 0)
     this.controls.autoRotateSpeed = 0.45
-    if (opts.mode === 'hero') { this.controls.enableZoom = false }
+    this.controls.addEventListener('start', () => { this.userOverride = true; this.controls.autoRotate = false })
 
     this.scene.background = skyTexture()
     this.scene.fog = new THREE.Fog('#b98471', 26, 70)
@@ -228,20 +241,40 @@ export class FortScene {
       this.threadMesh = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color: C.red, emissive: '#7a0d14', roughness: 0.5 }))
       this.threadMesh.castShadow = true
       this.scene.add(this.threadMesh)
-      this.threadProgress = this.opts.reducedMotion ? 1 : 0 // le fil se déroule à l'apparition
+      // le fil se déroule depuis sa longueur précédente jusqu'à la nouvelle punaise
+      this.threadProgress = this.opts.reducedMotion || pts.length <= this.lastThread ? 1 : Math.max(0, (this.lastThread - 1) / (pts.length - 1))
     }
 
+    this.lastThread = pts.length
     const cur = pins.find((p) => p.ordre === current)
     this.pulse.visible = !!cur
     if (cur) this.pulse.position.copy(toV(cur.x, cur.y, 0.04))
-    if (cur && this.opts.mode === 'map') this.focus(cur.x, cur.y)
   }
 
-  focus(x: number, y: number) {
-    const target = toV(x, y, 0.6)
-    const pos = target.clone().add(new THREE.Vector3(4, 11, 12.5))
-    if (this.opts.reducedMotion) { this.camera.position.copy(pos); this.controls.target.copy(target) } else this.camGoal = { pos, target }
+  /** Place la caméra selon la page affichée : chaque navigation devient un mouvement de caméra. */
+  setView(v: View) {
+    this.view = v
+    this.userOverride = false
+    this.arrived = false
+    this.controls.autoRotate = false
+    const V = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z)
+    if (v.kind === 'hero') { this.base = { pos: V(19, 5.2, 17), target: V(0, 1.6, 0) }; this.shiftGoal = 0.12 }
+    if (v.kind === 'overview') { this.base = { pos: V(2, 19, 15), target: V(0, 0, 0.5) }; this.shiftGoal = 0.2 }
+    if (v.kind === 'sky') { this.base = { pos: V(0, 27, 7), target: V(0, 0, 0) }; this.shiftGoal = 0.16 }
+    if (v.kind === 'focus') {
+      const target = toV(v.x, v.y, 1)
+      const off = V(0, 5.8, 8.2).applyAxisAngle(V(0, 1, 0), -0.6 + v.ordre * 0.85)
+      this.base = { pos: target.clone().add(off), target }
+      this.shiftGoal = 0.22
+    }
+    if (this.opts.reducedMotion) { this.camera.position.copy(this.base.pos.clone().sub(this.base.target).multiplyScalar(this.distScale).add(this.base.target)); this.controls.target.copy(this.base.target); this.arrived = true }
   }
+
+  /** 0 → 1 selon le défilement de la page : la caméra tourne doucement autour du lieu. */
+  setScroll(f: number) { this.scrollAz = this.opts.reducedMotion ? 0 : f * 0.7 }
+
+  /** Petit rebond d'une punaise (réponse donnée, lieu débloqué…). */
+  ping(ordre: number) { if (!this.opts.reducedMotion) this.pingT.set(ordre, this.clock.elapsedTime) }
 
   private pick(e: PointerEvent) {
     const r = this.renderer.domElement.getBoundingClientRect()
@@ -252,7 +285,6 @@ export class FortScene {
   }
 
   private onMove = (e: PointerEvent) => {
-    if (this.opts.mode !== 'map') return
     const h = this.pick(e)
     this.renderer.domElement.style.cursor = h?.reachable ? 'pointer' : ''
   }
@@ -268,24 +300,52 @@ export class FortScene {
     if (!w || !h) return
     this.renderer.setSize(w, h, false)
     this.camera.aspect = w / h
+    const portrait = w / h < 1
+    this.camera.fov = portrait ? 52 : 38
+    this.distScale = portrait ? Math.min(1.6, Math.max(1, 0.62 / (w / h))) : 1
+    this.applyShift()
+  }
+
+  /** Décale le cadrage vers le haut de l'écran (le bas est occupé par les fiches). */
+  private applyShift() {
+    const { clientWidth: w, clientHeight: h } = this.host
+    if (!w || !h) return
+    this.camera.setViewOffset(w, h, 0, h * this.shift, w, h)
     this.camera.updateProjectionMatrix()
   }
 
   private loop = () => {
     this.raf = requestAnimationFrame(this.loop)
     if (!this.visible) return
-    const dt = Math.min(this.clock.getDelta(), 0.05)
+    const dt = Math.min(this.clock.getDelta(), 0.25)
     const t = this.clock.elapsedTime
-    if (this.camGoal) {
-      this.camera.position.lerp(this.camGoal.pos, 1 - Math.pow(0.02, dt))
-      this.controls.target.lerp(this.camGoal.target, 1 - Math.pow(0.02, dt))
-      if (this.camera.position.distanceTo(this.camGoal.pos) < 0.05) this.camGoal = null
+    const k = 1 - Math.pow(0.08, dt) // amorti des mouvements de caméra
+    if (Math.abs(this.shift - this.shiftGoal) > 0.001) { this.shift += (this.shiftGoal - this.shift) * k; this.applyShift() }
+    const orbiting = (this.view.kind === 'hero' || this.view.kind === 'sky') && this.arrived
+    if (!this.userOverride && !orbiting) {
+      const goal = this.base.pos.clone().sub(this.base.target).multiplyScalar(this.distScale).applyAxisAngle(new THREE.Vector3(0, 1, 0), this.scrollAz).add(this.base.target)
+      this.camera.position.lerp(goal, k)
+      this.controls.target.lerp(this.base.target, k)
+      if (!this.arrived && this.camera.position.distanceTo(goal) < 0.08) {
+        this.arrived = true
+        if ((this.view.kind === 'hero' || this.view.kind === 'sky') && !this.opts.reducedMotion) {
+          this.controls.autoRotate = true
+          this.controls.autoRotateSpeed = this.view.kind === 'sky' ? 0.3 : 0.45
+        }
+      }
     }
     if (!this.opts.reducedMotion) {
       for (const g of this.pinGroup.children) if (g.userData.bob) g.children.forEach((c) => { if (c.position.y > 1) c.position.y = (c instanceof THREE.Sprite ? 2.35 : 1.7) + Math.sin(t * 2.4) * 0.12 })
       const s = 1 + ((t * 0.8) % 1) * 1.4
       this.pulse.scale.set(s, s, s);
       (this.pulse.material as THREE.MeshBasicMaterial).opacity = 0.85 * (1 - ((t * 0.8) % 1))
+    }
+    for (const h of this.heads) {
+      const t0 = this.pingT.get(h.ordre)
+      if (t0 === undefined) continue
+      const u = t - t0
+      if (u > 1.2) { this.pingT.delete(h.ordre); h.mesh.scale.setScalar(1); continue }
+      h.mesh.scale.setScalar(1 + Math.sin(u * Math.PI * 3) * Math.exp(-u * 3) * 0.9)
     }
     if (this.threadMesh && this.threadProgress < 1) {
       this.threadProgress = Math.min(1, this.threadProgress + dt * 0.6)
